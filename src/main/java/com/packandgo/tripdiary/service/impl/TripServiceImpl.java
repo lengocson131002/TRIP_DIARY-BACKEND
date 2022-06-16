@@ -1,15 +1,12 @@
 package com.packandgo.tripdiary.service.impl;
 
-import com.packandgo.tripdiary.enums.Transportation;
-import com.packandgo.tripdiary.enums.TripStatus;
+import com.packandgo.tripdiary.model.Comment;
 import com.packandgo.tripdiary.model.Like;
 import com.packandgo.tripdiary.model.Trip;
 import com.packandgo.tripdiary.model.User;
+import com.packandgo.tripdiary.payload.request.trip.CommentRequest;
 import com.packandgo.tripdiary.payload.request.trip.TripRequest;
-import com.packandgo.tripdiary.repository.DestinationRepository;
-import com.packandgo.tripdiary.repository.LikeRepository;
-import com.packandgo.tripdiary.repository.TripRepository;
-import com.packandgo.tripdiary.repository.UserRepository;
+import com.packandgo.tripdiary.repository.*;
 import com.packandgo.tripdiary.service.TripService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,12 +16,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+
 
 
 @Service
@@ -33,13 +28,15 @@ public class TripServiceImpl implements TripService {
     private final UserRepository userRepository;
     private final DestinationRepository destinationRepository;
     private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
 
     @Autowired
-    public TripServiceImpl(TripRepository tripRepository, UserRepository userRepository, DestinationRepository destinationRepository, LikeRepository likeRepository) {
+    public TripServiceImpl(TripRepository tripRepository, UserRepository userRepository, DestinationRepository destinationRepository, LikeRepository likeRepository, CommentRepository commentRepository) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.destinationRepository = destinationRepository;
         this.likeRepository = likeRepository;
+        this.commentRepository = commentRepository;
     }
 
     @Override
@@ -209,4 +206,42 @@ public class TripServiceImpl implements TripService {
         return tripRepository.getTripsForToday();
     }
 
+    @Override
+    public void commentTrip(Long tripId, CommentRequest request){
+        UserDetails userDetails = (UserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        User user = userRepository.findByUsername(userDetails.getUsername()).get();
+
+        Trip trip = tripRepository.findById(tripId).orElseThrow(
+                () ->  new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
+        );
+        Date date = new Date();
+        Comment comment = new Comment();
+        if(request.getId() != 0) {
+            Comment rootComment = commentRepository.findCommentById(request.getId()).orElseThrow(
+                    () ->  new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
+            );
+            comment.setContent(request.getContent());
+            comment.setUser(user);
+            comment.setTrip(trip);
+            comment.setTime(date);
+            comment.setComment(rootComment);
+            commentRepository.save(comment);
+        }else {
+            comment.setContent(request.getContent());
+            comment.setUser(user);
+            comment.setTrip(trip);
+            comment.setTime(date);
+            comment.setComment(null);
+            commentRepository.save(comment);
+        }
+    }
+    @Override
+    public List<Comment> getCommentsByTripId(Long tripId){
+        List<Comment> comments = commentRepository.findCommentsByTripId(tripId);
+        return comments;
+    }
 }

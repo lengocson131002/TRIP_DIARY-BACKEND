@@ -1,9 +1,12 @@
 package com.packandgo.tripdiary.controller;
 
 import com.packandgo.tripdiary.exception.TripNotFoundException;
+import com.packandgo.tripdiary.model.Comment;
 import com.packandgo.tripdiary.model.Trip;
 
+import com.packandgo.tripdiary.payload.request.trip.CommentRequest;
 import com.packandgo.tripdiary.payload.request.trip.TripRequest;
+import com.packandgo.tripdiary.payload.response.CommentResponse;
 import com.packandgo.tripdiary.payload.response.MessageResponse;
 import com.packandgo.tripdiary.payload.response.PagingResponse;
 import com.packandgo.tripdiary.payload.response.TripResponse;
@@ -13,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -74,5 +79,15 @@ public class TripController {
     }
 
 
-
+    @PostMapping("/comment/{id}")
+    public ResponseEntity<?> commentTrip(@PathVariable(name = "id", required = true) Long tripId,
+                                         @RequestBody CommentRequest request){
+        tripService.commentTrip(tripId, request);
+        return ResponseEntity.ok(new MessageResponse("Comment successfully"));
+    }
+    @GetMapping("/api/trips/{id}/comments")
+    public ResponseEntity<?> getComments(@PathVariable(name = "id", required = true) Long tripId){
+        List<Comment> commentList = tripService.getCommentsByTripId(tripId);
+        return ResponseEntity.ok(commentList);
+    }
 }
