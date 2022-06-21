@@ -1,5 +1,6 @@
 package com.packandgo.tripdiary.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -21,6 +22,7 @@ public class Comment {
     private String content;
 
     @Column(name = "date", columnDefinition = "DATETIME")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date time;
 
     @ManyToOne(fetch = FetchType.LAZY)

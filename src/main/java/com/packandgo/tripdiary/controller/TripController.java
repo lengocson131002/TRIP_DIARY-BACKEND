@@ -4,6 +4,7 @@ import com.packandgo.tripdiary.exception.TripNotFoundException;
 import com.packandgo.tripdiary.model.Comment;
 import com.packandgo.tripdiary.model.Trip;
 
+import com.packandgo.tripdiary.model.UserInfo;
 import com.packandgo.tripdiary.payload.request.trip.CommentRequest;
 import com.packandgo.tripdiary.payload.request.trip.TripRequest;
 import com.packandgo.tripdiary.payload.response.CommentResponse;
@@ -17,7 +18,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -90,7 +93,20 @@ public class TripController {
     }
     @GetMapping("/api/trips/{id}/comments")
     public ResponseEntity<?> getComments(@PathVariable(name = "id", required = true) Long tripId){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         List<Comment> commentList = tripService.getCommentsByTripId(tripId);
-        return ResponseEntity.ok(commentList);
+        List<CommentResponse> listResponses = commentList.stream().map(comment -> {
+            CommentResponse rComment = new CommentResponse();
+            //mapping
+            rComment.setId(comment.getId());
+            rComment.setTime(sdf.format(comment.getTime()));
+            rComment.setContent(comment.getContent());
+            rComment.setUsername(comment.getUser().getUsername());
+            UserInfo info = userService.getInfo(comment.getUser());
+            rComment.setAvatar(info.getProfileImageUrl());
+            rComment.setComment_root_id(comment.getComment() != null ? comment.getComment().getId() : 0);
+            return  rComment;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(listResponses);
     }
 }

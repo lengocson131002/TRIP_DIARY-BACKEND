@@ -8,10 +8,12 @@ import java.util.List;
 public class CommentResponse<T> {
     private Long id;
     private String content;
-    private Date time;
+    private String time;
     private Long comment_root_id;
+    private String username;
+    private String avatar;
 
-    public CommentResponse(List<Comment> commentList) {
+    public CommentResponse() {
     }
 
     public Long getId() {
@@ -30,12 +32,28 @@ public class CommentResponse<T> {
         this.content = content;
     }
 
-    public Date getTime() {
+    public String getTime() {
         return time;
     }
 
-    public void setTime(Date time) {
+    public void setTime(String time) {
         this.time = time;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     public Long getComment_root_id() {
