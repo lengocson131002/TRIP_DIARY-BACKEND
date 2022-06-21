@@ -3,10 +3,7 @@ package com.packandgo.tripdiary.service.impl;
 import com.packandgo.tripdiary.enums.Gender;
 import com.packandgo.tripdiary.enums.UserStatus;
 import com.packandgo.tripdiary.exception.UserNotFoundException;
-import com.packandgo.tripdiary.model.PasswordResetToken;
-import com.packandgo.tripdiary.model.Role;
-import com.packandgo.tripdiary.model.User;
-import com.packandgo.tripdiary.model.UserInfo;
+import com.packandgo.tripdiary.model.*;
 import com.packandgo.tripdiary.model.mail.MailContent;
 import com.packandgo.tripdiary.model.mail.VerifyEmailMailContent;
 import com.packandgo.tripdiary.payload.request.auth.NewPasswordRequest;
@@ -21,6 +18,7 @@ import com.packandgo.tripdiary.service.EmailSenderService;
 import com.packandgo.tripdiary.service.PasswordResetService;
 import com.packandgo.tripdiary.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,10 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -44,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailSenderService emailSenderService;
     private final PasswordResetService passwordResetService;
+
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository,
@@ -106,7 +102,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void register(RegisterRequest registerRequest) throws Exception {
+    public void register(RegisterRequest registerRequest, String backendUrl) throws Exception {
 
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             throw new IllegalArgumentException("Username has already exist");
@@ -133,7 +129,7 @@ public class UserServiceImpl implements UserService {
         userInfo.setGender(Gender.UNDEFINED);
 
         //create verify email
-        MailContent mailContent = new VerifyEmailMailContent(user.getEmail(), user.getVerifyToken());
+        MailContent mailContent = new VerifyEmailMailContent(user.getEmail(), user.getVerifyToken(), backendUrl);
         emailSenderService.sendEmail(mailContent);
         userRepository.save(user);
         userInfoRepository.save(userInfo);
@@ -242,7 +238,20 @@ public class UserServiceImpl implements UserService {
 
         userInfo.setDateOfBirth(infoUpdateRequest.getDateOfBirth());
         userInfo.setAboutMe(infoUpdateRequest.getAboutMe());
-        userInfoRepository.save(userInfo);
+
+       try {
+           userInfoRepository.save(userInfo);
+       } catch (Exception ex) {
+           throw new IllegalArgumentException("Can't update user info. Try again");
+       }
+
+
+    }
+    
+    @Override
+    public List<Trip> getTripsForUser(User user) {
+        List<Trip> trips = userRepository.findsTripByUserId(user.getId());
+        return trips;
     }
 
     @Override
@@ -252,7 +261,12 @@ public class UserServiceImpl implements UserService {
         Page<UserResponse> resultUserResponse = resultUser.map(user -> {
 
            UserResponse response =  new UserResponse();
+           UserInfo info = getInfo(user);
            response.setUsername(user.getUsername());
+           response.setAboutMe(info.getAboutMe());
+           response.setCountry(info.getCountry());
+           response.setCoverImageUrl(info.getCoverImageUrl());
+           response.setProfileImageUrl(info.getProfileImageUrl());
            response.setTrips(user.getTrips());
            return  response;
         });

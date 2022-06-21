@@ -8,6 +8,8 @@ import com.packandgo.tripdiary.enums.TripStatus;
 import com.packandgo.tripdiary.payload.request.trip.TripRequest;
 import com.packandgo.tripdiary.payload.response.TripResponse;
 import com.packandgo.tripdiary.util.ListStringConverter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -65,17 +67,26 @@ public class Trip {
     @Column(name = "notify_before")
     private int notifyBefore;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToMany(
+            mappedBy = "trips",
+            cascade =
+                    {
+                            CascadeType.DETACH,
+                            CascadeType.MERGE,
+                            CascadeType.REFRESH,
+                            CascadeType.PERSIST
+                    })
     @JsonIgnore
-    private User user;
+    private List<User> users;
 
     @OneToMany(mappedBy = "trip",
             fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<VisitDay> visitDays = new ArrayList<>();
+    private List<VisitDay> visitDays;
+
+    private String owner;
 
     public String concurrencyUnit;
 
@@ -83,10 +94,13 @@ public class Trip {
             fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
-    private List<PriceItem> priceList = new ArrayList<>();
+    private List<PriceItem> priceList;
 
 
     public Trip() {
+        priceList = new ArrayList<>();
+        visitDays = new ArrayList<>();
+        users = new ArrayList<>();
     }
 
     public void mapping(TripRequest request) {
@@ -96,7 +110,6 @@ public class Trip {
         this.setName(request.getName());
         this.setBeginDate(request.getBeginDate());
         this.setEndDate(request.getEndDate());
-        this.setUser(user);
 
         //set transportation
         if (request.getTransportation() == null) {
@@ -179,6 +192,11 @@ public class Trip {
         tripResponse.setPriceList(this.getPriceList());
         tripResponse.setNotifyBefore(this.getNotifyBefore());
         tripResponse.setNumOfLikes(0);
+        tripResponse.setOwner(this.owner);
+        this.users.forEach(user -> {
+            if (!user.getUsername().equals(owner))
+                tripResponse.getTripMates().add(user.getUsername());
+        });
         return tripResponse;
     }
 
@@ -198,12 +216,20 @@ public class Trip {
         item.setTrip(this);
     }
 
-    public User getUser() {
-        return user;
+    public List<User> getUsers() {
+        return users;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUsers(List<User> users) {
+        this.users = users;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public int getNotifyBefore() {
@@ -332,4 +358,16 @@ public class Trip {
         this.name = name;
     }
 
+    public void addUser(User user) {
+        if (this.getUsers() == null) {
+            this.users = new ArrayList<>();
+        }
+        this.users.add(user);
+        user.getTrips().add(this);
+    }
+
+    public void removeUser(User user) {
+        this.users.remove(user);
+        user.getTrips().remove(this);
+    }
 }

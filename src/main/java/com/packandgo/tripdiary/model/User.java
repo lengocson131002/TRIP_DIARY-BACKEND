@@ -1,5 +1,6 @@
 package com.packandgo.tripdiary.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.packandgo.tripdiary.enums.UserStatus;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -9,11 +10,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.*;
 
 @Entity
-@Table(name = "user",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "username"),
-                @UniqueConstraint(columnNames = "email")
-        })
+@Table(name = "user", uniqueConstraints = {@UniqueConstraint(columnNames = "username"), @UniqueConstraint(columnNames = "email")})
 
 public class User {
     @Id
@@ -34,25 +31,16 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
-    @OneToMany(
-            cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY,
-            mappedBy = "user")
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST}, fetch = FetchType.LAZY)
+    @JoinTable(name = "user_trip", joinColumns = {@JoinColumn(name = "user_id")}, inverseJoinColumns = {@JoinColumn(name = "trip_id")})
+    @JsonIgnore
     private List<Trip> trips = new ArrayList<>();
 
-    @ManyToMany(
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL
-    )
-    @JoinTable(name = "user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    @OneToMany(
-            cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY,
-            mappedBy = "user")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "user")
     private List<Like> likes = new ArrayList<>();
 
     public User() {
@@ -103,10 +91,10 @@ public class User {
     }
 
     public void setTrips(List<Trip> trips) {
-        if(this.trips == null) {
+        if (this.trips == null) {
             trips = new ArrayList<>();
         }
-        trips.stream().forEach(trip -> trip.setUser(this));
+        trips.stream().forEach(trip -> trip.setOwner(this.getUsername()));
         this.trips = trips;
     }
 
@@ -127,11 +115,18 @@ public class User {
     }
 
     public void addTrip(Trip trip) {
-        if(this.trips == null) {
+        if (this.trips == null) {
             trips = new ArrayList<>();
         }
         this.trips.add(trip);
-        trip.setUser(this);
+        trip.setOwner(this.username);
+    }
+
+    public void removeTrip(Trip trip) {
+        if (!this.trips.isEmpty()) {
+            this.trips.remove(trip);
+            trip.getUsers().remove(this);
+        }
     }
 
     public Set<Role> getRoles() {
@@ -143,18 +138,9 @@ public class User {
     }
 
 
-
     @Override
     public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", verifyToken='" + verifyToken + '\'' +
-                ", status=" + status +
-                ", roles=" + roles +
-                '}';
+        return "User{" + "id=" + id + ", username='" + username + '\'' + ", email='" + email + '\'' + ", password='" + password + '\'' + ", verifyToken='" + verifyToken + '\'' + ", status=" + status + ", roles=" + roles + '}';
     }
 
 
