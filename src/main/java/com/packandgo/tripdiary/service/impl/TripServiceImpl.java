@@ -220,6 +220,8 @@ public class TripServiceImpl implements TripService {
         );
         Date date = new Date();
         Comment comment = new Comment();
+
+        //requestId = 0 thi them comment chinh con neu la so khac 0 thi la comment phu ben trong
         if(request.getId() != 0) {
             Comment rootComment = commentRepository.findCommentById(request.getId()).orElseThrow(
                     () ->  new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
