@@ -235,7 +235,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public void commentTrip(Long tripId, CommentRequest request){
+    public void commentTrip(Long tripId, String content){
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
@@ -248,29 +248,22 @@ public class TripServiceImpl implements TripService {
         );
         Date date = new Date();
         Comment comment = new Comment();
+        if(content.trim().isEmpty())
+        {
+            throw new IllegalArgumentException("Comment can't be blank");
+        }
 
-        //requestId = 0 thi them comment chinh con neu la so khac 0 thi la comment phu ben trong comment chinh
-        if(request.getId() != 0) {
-            Comment rootComment = commentRepository.findCommentByCommentIdAndTripId(request.getId(), tripId).orElseThrow(
-                    () ->  new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
-            );
-            comment.setContent(request.getContent());
-            comment.setUser(user);
-            comment.setTrip(trip);
-            comment.setTime(date);
-            comment.setComment(rootComment);
-            commentRepository.save(comment);
-        }else {
-            comment.setContent(request.getContent());
+            comment.setContent(content);
             comment.setUser(user);
             comment.setTrip(trip);
             comment.setTime(date);
             comment.setComment(null);
             commentRepository.save(comment);
-        }
+
     }
     @Override
     public List<Comment> getCommentsByTripId(Long tripId){
+
         List<Comment> comments = commentRepository.findCommentsByTripId(tripId);
         return comments;
     }
@@ -359,5 +352,76 @@ public class TripServiceImpl implements TripService {
             }
         }
         return false;
+    }
+    @Override
+    public void deleteComment(Long commentId){
+        if (commentId == null) {
+            throw new IllegalArgumentException("Removed comment's ID is required");
+        }
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        User user = userRepository.findByUsername(userDetails.getUsername()).get();
+
+        Comment existedComment = commentRepository.findCommentById(commentId).orElseThrow(
+                () -> new IllegalArgumentException("Comment with ID \"" + commentId + "\" doesn't exist")
+        );
+        if(existedComment.getUser().getId() == user.getId()) {
+            commentRepository.delete(existedComment);
+        }else{
+            throw new IllegalArgumentException("You have no permission to delete this comment");
+        }
+    }
+    @Override
+    public void editComment(CommentRequest request) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        User user = userRepository.findByUsername(userDetails.getUsername()).get();
+        if (request.getContent().trim().isEmpty()) {
+            throw new IllegalArgumentException("Comment can't be blank");
+        }
+        Comment existedComment = commentRepository.findCommentById(request.getId()).orElseThrow(
+                () -> new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
+        );
+        if (existedComment.getUser().getId() == user.getId()) {
+            existedComment.setContent(request.getContent());
+            commentRepository.save(existedComment);
+        } else {
+            throw new IllegalArgumentException("You have no permission to edit this comment");
+        }
+    }
+    @Override
+    public void replyComment(Long tripId, CommentRequest request){
+        UserDetails userDetails = (UserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        User user = userRepository.findByUsername(userDetails.getUsername()).get();
+        Trip trip = tripRepository.findById(tripId).orElseThrow(
+                () ->  new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
+        );
+        Date date = new Date();
+        Comment comment = new Comment();
+        if(request.getContent().trim().isEmpty())
+        {
+            throw new IllegalArgumentException("Comment can't be blank");
+        }
+        Comment rootComment = commentRepository.findCommentByCommentIdAndTripId(request.getId(), tripId).orElseThrow(
+                () ->  new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
+        );
+        comment.setContent(request.getContent());
+        comment.setUser(user);
+        comment.setTrip(trip);
+        comment.setTime(date);
+        comment.setComment(rootComment);
+        commentRepository.save(comment);
+        rootComment.addExComment(comment);
     }
 }

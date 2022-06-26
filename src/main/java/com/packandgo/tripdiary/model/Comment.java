@@ -12,7 +12,6 @@ import java.util.List;
 
 @Entity
 @Table(name = "comment")
-//@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,20 +36,40 @@ public class Comment {
     @JsonIgnore
     private Trip trip;
 
+    @OneToMany(mappedBy = "trip",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<Comment> extraComment;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "comment_root_id",referencedColumnName = "id")
     @JsonIgnore
-    private Comment comment;
+    private Comment rComment;
+    public void addExComment(Comment exComment) {
+        if (this.extraComment == null) {
+            extraComment = new ArrayList<>();
+        }
+        this.extraComment.add(exComment);
+        exComment.setComment(this);
+    }
 
     public Comment getComment() {
-        return comment;
+        return rComment;
     }
 
-    public void setComment(Comment comment) {
-        this.comment = comment;
+    public void setComment(Comment rComment) {
+        this.rComment = rComment;
     }
 
+    public List<Comment> getExtraComment() {
+        return extraComment;
+    }
+
+    public void setExtraComment(List<Comment> extraComment) {
+        this.extraComment = extraComment;
+    }
 
     public Long getId() {
         return id;

@@ -19,10 +19,13 @@ public interface TripService {
     public boolean existedTrip(Long tripId);
     public boolean existedLike(Long tripId);
     public List<Trip> getNotifiedTripsForDay();
-    public void commentTrip(Long tripId, CommentRequest request);
+    public void commentTrip(Long tripId, String content);
     public List<Comment> getCommentsByTripId(Long tripId);
 
     public void inviteToJoinTrip(Long tripId, String username);
 
     public void removeTripMate(Long tripId, String username);
+    public void deleteComment(Long commentId);
+    public void editComment(CommentRequest request);
+    public void replyComment(Long tripId, CommentRequest request);
 }

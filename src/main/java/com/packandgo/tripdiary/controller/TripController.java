@@ -86,11 +86,18 @@ public class TripController {
 
 
     @PostMapping("/comment/{id}")
-    public ResponseEntity<?> commentTrip(@PathVariable(name = "id", required = true) Long tripId,
+    public ResponseEntity<?> addComment(@PathVariable(name = "id", required = true) Long tripId,
                                          @RequestBody CommentRequest request){
-        tripService.commentTrip(tripId, request);
+        tripService.commentTrip(tripId, request.getContent());
         return ResponseEntity.ok(new MessageResponse("Comment successfully"));
     }
+    @PostMapping("reply/{id}")
+    public ResponseEntity<?> replyComment(@PathVariable(name = "id", required = true) Long tripId,
+                                          @RequestBody CommentRequest request){
+        tripService.replyComment(tripId, request);
+        return ResponseEntity.ok(new MessageResponse("Reply successfully"));
+    }
+
     @GetMapping("/api/trips/{id}/comments")
     public ResponseEntity<?> getComments(@PathVariable(name = "id", required = true) Long tripId){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -104,9 +111,21 @@ public class TripController {
             rComment.setUsername(comment.getUser().getUsername());
             UserInfo info = userService.getInfo(comment.getUser());
             rComment.setAvatar(info.getProfileImageUrl());
-            rComment.setComment_root_id(comment.getComment() != null ? comment.getComment().getId() : 0);
+//            rComment.setExtraComment(comment.getExtraComment());
+            rComment.setRoot_id(comment.getComment() != null ? comment.getComment().getId() : 0);
             return  rComment;
         }).collect(Collectors.toList());
         return ResponseEntity.ok(listResponses);
+    }
+
+    @DeleteMapping("deleteComment/{id}")
+    public ResponseEntity<?> deleteComment(@PathVariable(name = "id") Long commentId){
+        tripService.deleteComment(commentId);
+        return ResponseEntity.ok(new MessageResponse("Comment was deleted successfully"));
+    }
+    @PutMapping("editComment")
+    public ResponseEntity<?> editComment(@RequestBody CommentRequest request){
+        tripService.editComment(request);
+        return ResponseEntity.ok(new MessageResponse("Comment was edit successfully"));
     }
 }

@@ -2,6 +2,7 @@ package com.packandgo.tripdiary.payload.response;
 
 import com.packandgo.tripdiary.model.Comment;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -9,7 +10,17 @@ public class CommentResponse<T> {
     private Long id;
     private String content;
     private String time;
-    private Long comment_root_id;
+    private Long root_id;
+
+    public Long getRoot_id() {
+        return root_id;
+    }
+
+    public void setRoot_id(Long root_id) {
+        this.root_id = root_id;
+    }
+
+    //    private List<Comment> extraComment = new ArrayList<>();
     private String username;
     private String avatar;
 
@@ -56,11 +67,11 @@ public class CommentResponse<T> {
         this.avatar = avatar;
     }
 
-    public Long getComment_root_id() {
-        return comment_root_id;
-    }
-
-    public void setComment_root_id(Long comment_root_id) {
-        this.comment_root_id = comment_root_id;
-    }
+//    public List<Comment> getExtraComment() {
+//        return extraComment;
+//    }
+//
+//    public void setExtraComment(List<Comment> extraComment) {
+//        this.extraComment = extraComment;
+//    }
 }

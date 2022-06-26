@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     boolean existsById(Long id);
     Optional<Comment> findCommentById(Long id);
+//    @Query("SELECT c FROM Comment c WHERE c.trip.id = ?1 and c.rComment Is Null")
     List<Comment> findCommentsByTripId(Long id);
     @Query("SELECT c FROM Comment c WHERE c.id = ?1 and c.trip.id = ?2")
     Optional<Comment> findCommentByCommentIdAndTripId(Long id, Long tripId);
