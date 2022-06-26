@@ -84,8 +84,7 @@ public class TripController {
     }
 
 
-
-    @PostMapping("/comment/{id}")
+    @PostMapping("/comments/{id}")
     public ResponseEntity<?> addComment(@PathVariable(name = "id", required = true) Long tripId,
                                          @RequestBody CommentRequest request){
         tripService.commentTrip(tripId, request.getContent());
@@ -98,7 +97,7 @@ public class TripController {
         return ResponseEntity.ok(new MessageResponse("Reply successfully"));
     }
 
-    @GetMapping("/api/trips/{id}/comments")
+    @GetMapping("/{id}/comments")
     public ResponseEntity<?> getComments(@PathVariable(name = "id", required = true) Long tripId){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         List<Comment> commentList = tripService.getCommentsByTripId(tripId);
@@ -118,12 +117,12 @@ public class TripController {
         return ResponseEntity.ok(listResponses);
     }
 
-    @DeleteMapping("deleteComment/{id}")
+    @DeleteMapping("/comments/{id}")
     public ResponseEntity<?> deleteComment(@PathVariable(name = "id") Long commentId){
         tripService.deleteComment(commentId);
         return ResponseEntity.ok(new MessageResponse("Comment was deleted successfully"));
     }
-    @PutMapping("editComment")
+    @PutMapping("/comments")
     public ResponseEntity<?> editComment(@RequestBody CommentRequest request){
         tripService.editComment(request);
         return ResponseEntity.ok(new MessageResponse("Comment was edit successfully"));

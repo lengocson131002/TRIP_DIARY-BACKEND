@@ -424,4 +424,5 @@ public class TripServiceImpl implements TripService {
         commentRepository.save(comment);
         rootComment.addExComment(comment);
     }
+
 }
