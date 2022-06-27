@@ -11,6 +11,7 @@ import com.packandgo.tripdiary.payload.response.CommentResponse;
 import com.packandgo.tripdiary.payload.response.MessageResponse;
 import com.packandgo.tripdiary.payload.response.PagingResponse;
 import com.packandgo.tripdiary.payload.response.TripResponse;
+import com.packandgo.tripdiary.service.ReactService;
 import com.packandgo.tripdiary.service.TripService;
 import com.packandgo.tripdiary.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +28,13 @@ import java.util.stream.Collectors;
 public class TripController {
     private final TripService tripService;
     private final UserService userService;
+    private final ReactService reactService;
 
     @Autowired
-    public TripController(TripService tripService, UserService userService) {
+    public TripController(TripService tripService, UserService userService, ReactService reactService) {
         this.tripService = tripService;
         this.userService = userService;
+        this.reactService = reactService;
     }
 
 
@@ -79,7 +82,7 @@ public class TripController {
     @PostMapping("/like/{id}")
 
     public ResponseEntity<?> likeTrip(@PathVariable(name = "id", required = true) Long tripId) {
-        tripService.likeTrip(tripId);
+        reactService.likeTrip(tripId);
         return ResponseEntity.ok(new MessageResponse("OK"));
     }
 
@@ -88,20 +91,20 @@ public class TripController {
     @PostMapping("/comment/{id}")
     public ResponseEntity<?> addComment(@PathVariable(name = "id", required = true) Long tripId,
                                          @RequestBody CommentRequest request){
-        tripService.commentTrip(tripId, request.getContent());
+        reactService.commentTrip(tripId, request.getContent());
         return ResponseEntity.ok(new MessageResponse("Comment successfully"));
     }
-    @PostMapping("reply/{id}")
+    @PostMapping("/reply/{id}")
     public ResponseEntity<?> replyComment(@PathVariable(name = "id", required = true) Long tripId,
                                           @RequestBody CommentRequest request){
-        tripService.replyComment(tripId, request);
+        reactService.replyComment(tripId, request);
         return ResponseEntity.ok(new MessageResponse("Reply successfully"));
     }
 
     @GetMapping("/api/trips/{id}/comments")
     public ResponseEntity<?> getComments(@PathVariable(name = "id", required = true) Long tripId){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        List<Comment> commentList = tripService.getCommentsByTripId(tripId);
+        List<Comment> commentList = reactService.getCommentsByTripId(tripId);
         List<CommentResponse> listResponses = commentList.stream().map(comment -> {
             CommentResponse rComment = new CommentResponse();
             //mapping
@@ -111,21 +114,22 @@ public class TripController {
             rComment.setUsername(comment.getUser().getUsername());
             UserInfo info = userService.getInfo(comment.getUser());
             rComment.setAvatar(info.getProfileImageUrl());
-//            rComment.setExtraComment(comment.getExtraComment());
-            rComment.setRoot_id(comment.getComment() != null ? comment.getComment().getId() : 0);
+            List<CommentResponse> exComments = reactService.mappingComment(comment.getExtraComment());
+            rComment.setExtraComment(exComments);
+//            rComment.setRoot_id(comment.getComment() != null ? comment.getComment().getId() : 0);
             return  rComment;
         }).collect(Collectors.toList());
         return ResponseEntity.ok(listResponses);
     }
 
-    @DeleteMapping("deleteComment/{id}")
+    @DeleteMapping("/comment/{id}")
     public ResponseEntity<?> deleteComment(@PathVariable(name = "id") Long commentId){
-        tripService.deleteComment(commentId);
+        reactService.deleteComment(commentId);
         return ResponseEntity.ok(new MessageResponse("Comment was deleted successfully"));
     }
-    @PutMapping("editComment")
+    @PutMapping("/comment")
     public ResponseEntity<?> editComment(@RequestBody CommentRequest request){
-        tripService.editComment(request);
+        reactService.editComment(request);
         return ResponseEntity.ok(new MessageResponse("Comment was edit successfully"));
     }
 }

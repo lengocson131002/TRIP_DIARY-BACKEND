@@ -38,10 +38,6 @@ public class TripServiceImpl implements TripService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
     private final DestinationRepository destinationRepository;
-    private final LikeRepository likeRepository;
-    private final CommentRepository commentRepository;
-
-
     private final EmailSenderService mailService;
 
     @Value("${tripdiary.baseurl.frontend}")
@@ -51,13 +47,10 @@ public class TripServiceImpl implements TripService {
     public TripServiceImpl(TripRepository tripRepository,
                            UserRepository userRepository,
                            DestinationRepository destinationRepository,
-                           LikeRepository likeRepository,
-                           EmailSenderService mailService, CommentRepository commentRepository) {
+                           EmailSenderService mailService) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.destinationRepository = destinationRepository;
-        this.likeRepository = likeRepository;
-        this.commentRepository = commentRepository;
         this.mailService = mailService;
     }
 
@@ -189,84 +182,13 @@ public class TripServiceImpl implements TripService {
         return tripRepository.existsById(tripId);
     }
 
-
-    public void likeTrip(Long tripId) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-
-
-        Trip trip = tripRepository.findById(tripId).orElseThrow(
-                () -> new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
-        );
-        if (likeRepository.existsByTripIdAndUserId(trip.getId(), user.getId()) == false) {
-            Like like = new Like();
-            like.setUser(user);
-            like.setTrip(trip);
-            likeRepository.save(like);
-        } else {
-            Like existedLike = likeRepository.findByTripIdAndUserId(trip.getId(), user.getId());
-            likeRepository.delete(existedLike);
-        }
-    }
-
-    @Override
-    public boolean existedLike(Long tripId) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-
-        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-
-        Trip trip = tripRepository.findById(tripId).orElseThrow(
-                () -> new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
-        );
-        return likeRepository.existsByTripIdAndUserId(trip.getId(), user.getId());
-    }
-
     @Override
     public List<Trip> getNotifiedTripsForDay() {
         return tripRepository.getTripsForToday();
     }
 
-    @Override
-    public void commentTrip(Long tripId, String content){
 
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
 
-        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-        Trip trip = tripRepository.findById(tripId).orElseThrow(
-                () ->  new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
-        );
-        Date date = new Date();
-        Comment comment = new Comment();
-        if(content.trim().isEmpty())
-        {
-            throw new IllegalArgumentException("Comment can't be blank");
-        }
-
-            comment.setContent(content);
-            comment.setUser(user);
-            comment.setTrip(trip);
-            comment.setTime(date);
-            comment.setComment(null);
-            commentRepository.save(comment);
-
-    }
-    @Override
-    public List<Comment> getCommentsByTripId(Long tripId){
-
-        List<Comment> comments = commentRepository.findCommentsByTripId(tripId);
-        return comments;
-    }
     public void inviteToJoinTrip(Long tripId, String username) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
@@ -353,75 +275,5 @@ public class TripServiceImpl implements TripService {
         }
         return false;
     }
-    @Override
-    public void deleteComment(Long commentId){
-        if (commentId == null) {
-            throw new IllegalArgumentException("Removed comment's ID is required");
-        }
 
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-
-        Comment existedComment = commentRepository.findCommentById(commentId).orElseThrow(
-                () -> new IllegalArgumentException("Comment with ID \"" + commentId + "\" doesn't exist")
-        );
-        if(existedComment.getUser().getId() == user.getId()) {
-            commentRepository.delete(existedComment);
-        }else{
-            throw new IllegalArgumentException("You have no permission to delete this comment");
-        }
-    }
-    @Override
-    public void editComment(CommentRequest request) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-        if (request.getContent().trim().isEmpty()) {
-            throw new IllegalArgumentException("Comment can't be blank");
-        }
-        Comment existedComment = commentRepository.findCommentById(request.getId()).orElseThrow(
-                () -> new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
-        );
-        if (existedComment.getUser().getId() == user.getId()) {
-            existedComment.setContent(request.getContent());
-            commentRepository.save(existedComment);
-        } else {
-            throw new IllegalArgumentException("You have no permission to edit this comment");
-        }
-    }
-    @Override
-    public void replyComment(Long tripId, CommentRequest request){
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-        Trip trip = tripRepository.findById(tripId).orElseThrow(
-                () ->  new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
-        );
-        Date date = new Date();
-        Comment comment = new Comment();
-        if(request.getContent().trim().isEmpty())
-        {
-            throw new IllegalArgumentException("Comment can't be blank");
-        }
-        Comment rootComment = commentRepository.findCommentByCommentIdAndTripId(request.getId(), tripId).orElseThrow(
-                () ->  new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
-        );
-        comment.setContent(request.getContent());
-        comment.setUser(user);
-        comment.setTrip(trip);
-        comment.setTime(date);
-        comment.setComment(rootComment);
-        commentRepository.save(comment);
-        rootComment.addExComment(comment);
-    }
 }

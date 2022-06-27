@@ -10,17 +10,7 @@ public class CommentResponse<T> {
     private Long id;
     private String content;
     private String time;
-    private Long root_id;
-
-    public Long getRoot_id() {
-        return root_id;
-    }
-
-    public void setRoot_id(Long root_id) {
-        this.root_id = root_id;
-    }
-
-    //    private List<Comment> extraComment = new ArrayList<>();
+    private List<CommentResponse> extraComment = new ArrayList<>();
     private String username;
     private String avatar;
 
@@ -67,11 +57,11 @@ public class CommentResponse<T> {
         this.avatar = avatar;
     }
 
-//    public List<Comment> getExtraComment() {
-//        return extraComment;
-//    }
-//
-//    public void setExtraComment(List<Comment> extraComment) {
-//        this.extraComment = extraComment;
-//    }
+    public List<CommentResponse> getExtraComment() {
+        return extraComment;
+    }
+
+    public void setExtraComment(List<CommentResponse> extraComment) {
+        this.extraComment = extraComment;
+    }
 }
