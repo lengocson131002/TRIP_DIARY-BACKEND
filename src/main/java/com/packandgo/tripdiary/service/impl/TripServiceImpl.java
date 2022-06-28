@@ -1,15 +1,20 @@
 package com.packandgo.tripdiary.service.impl;
 
 import com.packandgo.tripdiary.enums.NotificationType;
-import com.packandgo.tripdiary.model.Like;
+
 import com.packandgo.tripdiary.model.Notification;
 import com.packandgo.tripdiary.model.Trip;
 import com.packandgo.tripdiary.model.User;
-import com.packandgo.tripdiary.model.mail.InviteJoinTripContent;
-import com.packandgo.tripdiary.model.mail.MailContent;
 import com.packandgo.tripdiary.payload.request.trip.TripRequest;
 import com.packandgo.tripdiary.repository.*;
+
+import com.packandgo.tripdiary.model.mail.InviteJoinTripContent;
+import com.packandgo.tripdiary.model.mail.MailContent;
+import com.packandgo.tripdiary.repository.DestinationRepository;
+import com.packandgo.tripdiary.repository.TripRepository;
+import com.packandgo.tripdiary.repository.UserRepository;
 import com.packandgo.tripdiary.service.EmailSenderService;
+
 import com.packandgo.tripdiary.service.TripService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,9 +25,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +37,6 @@ public class TripServiceImpl implements TripService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
     private final DestinationRepository destinationRepository;
-    private final LikeRepository likeRepository;
     private final EmailSenderService mailService;
     private final NotificationRepository notificationRepository;
 
@@ -44,13 +48,11 @@ public class TripServiceImpl implements TripService {
     public TripServiceImpl(TripRepository tripRepository,
                            UserRepository userRepository,
                            DestinationRepository destinationRepository,
-                           LikeRepository likeRepository,
                            EmailSenderService mailService,
                            NotificationRepository notificationRepository) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.destinationRepository = destinationRepository;
-        this.likeRepository = likeRepository;
         this.mailService = mailService;
         this.notificationRepository = notificationRepository;
     }
@@ -179,52 +181,13 @@ public class TripServiceImpl implements TripService {
         return tripRepository.existsById(tripId);
     }
 
-
-    public void likeTrip(Long tripId) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-
-
-        Trip trip = tripRepository.findById(tripId).orElseThrow(
-                () -> new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
-        );
-        if (likeRepository.existsByTripIdAndUserId(trip.getId(), user.getId()) == false) {
-            Like like = new Like();
-            like.setUser(user);
-            like.setTrip(trip);
-            likeRepository.save(like);
-        } else {
-            Like existedLike = likeRepository.findByTripIdAndUserId(trip.getId(), user.getId());
-            likeRepository.delete(existedLike);
-        }
-    }
-
-    @Override
-    public boolean existedLike(Long tripId) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-
-        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-
-        Trip trip = tripRepository.findById(tripId).orElseThrow(
-                () -> new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
-        );
-        return likeRepository.existsByTripIdAndUserId(trip.getId(), user.getId());
-    }
-
     @Override
     public List<Trip> getNotifiedTripsForDay() {
         return tripRepository.getTripsForToday();
     }
 
-    @Override
+
+
     public void inviteToJoinTrip(Long tripId, String username) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
@@ -330,5 +293,4 @@ public class TripServiceImpl implements TripService {
         }
         return false;
     }
-
 }
