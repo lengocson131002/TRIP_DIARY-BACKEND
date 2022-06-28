@@ -70,8 +70,8 @@ public class TripController {
         return ResponseEntity.ok(new MessageResponse("Trip was removed successfully"));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateTrip(@PathVariable(name = "id", required = true) Long tripId,
+    @PutMapping("/{tripId}")
+    public ResponseEntity<?> updateTrip(@PathVariable(name = "tripId", required = true) Long tripId,
                                         @RequestBody TripRequest request) {
 
         Trip savedTrip = tripService.updateTrip(tripId, request);
@@ -79,21 +79,23 @@ public class TripController {
         return ResponseEntity.ok(tripResponse);
     }
 
-    @PostMapping("/like/{id}")
+    @PostMapping("/like/{tripId}")
 
-    public ResponseEntity<?> likeTrip(@PathVariable(name = "id", required = true) Long tripId) {
+    public ResponseEntity<?> likeTrip(@PathVariable(name = "tripId", required = true) Long tripId) {
         reactService.likeTrip(tripId);
         return ResponseEntity.ok(new MessageResponse("OK"));
     }
 
 
-    @PostMapping("/comments/{id}")
-    public ResponseEntity<?> addComment(@PathVariable(name = "id", required = true) Long tripId,
+
+    @PostMapping("/{tripId}/comments")
+    public ResponseEntity<?> addComment(@PathVariable(name = "tripId", required = true) Long tripId,
                                          @RequestBody CommentRequest request){
         reactService.commentTrip(tripId, request.getContent());
         return ResponseEntity.ok(new MessageResponse("Comment successfully"));
     }
-    @PostMapping("/reply/{id}")
+
+    @PostMapping("/comments/{commentId}/reply")
     public ResponseEntity<?> replyComment(@PathVariable(name = "id", required = true) Long tripId,
                                           @RequestBody CommentRequest request){
         reactService.replyComment(tripId, request);
@@ -121,25 +123,17 @@ public class TripController {
         return ResponseEntity.ok(listResponses);
     }
 
-<<<<<<< HEAD
-    @DeleteMapping("/comments/{id}")
-=======
-    @DeleteMapping("/comment/{id}")
->>>>>>> d3330ffcccaa46cfb8ae19d9b189f17dc91f0c0c
+
+    @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<?> deleteComment(@PathVariable(name = "id") Long commentId){
         reactService.deleteComment(commentId);
         return ResponseEntity.ok(new MessageResponse("Comment was deleted successfully"));
     }
-<<<<<<< HEAD
-    @PutMapping("/comments")
-    public ResponseEntity<?> editComment(@RequestBody CommentRequest request){
-        tripService.editComment(request);
-=======
-    @PutMapping("/comment/{id}")
-    public ResponseEntity<?> editComment(@PathVariable(name = "id") Long tripId,
+
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<?> editComment(@PathVariable(name = "commentId") Long tripId,
                                          @RequestBody CommentRequest request){
         reactService.editComment(tripId, request);
->>>>>>> d3330ffcccaa46cfb8ae19d9b189f17dc91f0c0c
         return ResponseEntity.ok(new MessageResponse("Comment was edit successfully"));
     }
 }
