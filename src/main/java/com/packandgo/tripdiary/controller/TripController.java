@@ -19,7 +19,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+<<<<<<< HEAD
 import java.text.SimpleDateFormat;
+=======
+>>>>>>> c36c2bffd79d8b8a7ceea5a3d1096ad5cbd289fc
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,7 +56,12 @@ public class TripController {
 
         page = page <= 0 ? 1 : page;
         Page<Trip> trips = tripService.getTrips(page, size);
-        PagingResponse<Trip> response = new PagingResponse<>(page, size, trips.getTotalPages(), trips.getContent());
+        List<TripResponse> tripResponses = trips
+                .stream()
+                .map(t -> t.toResponse())
+                .collect(Collectors.toList());
+
+        PagingResponse<TripResponse> response = new PagingResponse<>(page, size, trips.getTotalPages(), tripResponses);
         return ResponseEntity.ok(response);
     }
 

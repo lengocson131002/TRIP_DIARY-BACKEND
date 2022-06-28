@@ -35,7 +35,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/**/*swagger*/**",
             "/admin/api/**",
 
-
     };
 
     private final UserDetailsServiceImpl userDetailsService;
@@ -77,6 +76,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/api/trips", "/api/trips/{id}").permitAll()
                 .antMatchers( "/api/users/**").permitAll()
                 .antMatchers("/api/trips/{id}/comments").permitAll()
+                .antMatchers( "/api/search/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();

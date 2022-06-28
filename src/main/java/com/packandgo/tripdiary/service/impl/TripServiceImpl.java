@@ -1,8 +1,13 @@
 package com.packandgo.tripdiary.service.impl;
 
+<<<<<<< HEAD
 
 import com.packandgo.tripdiary.model.Comment;
+=======
+import com.packandgo.tripdiary.enums.NotificationType;
+>>>>>>> c36c2bffd79d8b8a7ceea5a3d1096ad5cbd289fc
 import com.packandgo.tripdiary.model.Like;
+import com.packandgo.tripdiary.model.Notification;
 import com.packandgo.tripdiary.model.Trip;
 import com.packandgo.tripdiary.model.User;
 import com.packandgo.tripdiary.payload.request.trip.CommentRequest;
@@ -15,6 +20,8 @@ import com.packandgo.tripdiary.repository.DestinationRepository;
 import com.packandgo.tripdiary.repository.LikeRepository;
 import com.packandgo.tripdiary.repository.TripRepository;
 import com.packandgo.tripdiary.repository.UserRepository;
+import com.packandgo.tripdiary.payload.request.trip.TripRequest;
+import com.packandgo.tripdiary.repository.*;
 import com.packandgo.tripdiary.service.EmailSenderService;
 
 import com.packandgo.tripdiary.service.TripService;
@@ -29,6 +36,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -39,6 +47,8 @@ public class TripServiceImpl implements TripService {
     private final UserRepository userRepository;
     private final DestinationRepository destinationRepository;
     private final EmailSenderService mailService;
+    private final NotificationRepository notificationRepository;
+
 
     @Value("${tripdiary.baseurl.frontend}")
     private String frontendUrl;
@@ -47,11 +57,18 @@ public class TripServiceImpl implements TripService {
     public TripServiceImpl(TripRepository tripRepository,
                            UserRepository userRepository,
                            DestinationRepository destinationRepository,
+<<<<<<< HEAD
                            EmailSenderService mailService) {
+=======
+                           LikeRepository likeRepository,
+                           EmailSenderService mailService,
+                           NotificationRepository notificationRepository) {
+>>>>>>> c36c2bffd79d8b8a7ceea5a3d1096ad5cbd289fc
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.destinationRepository = destinationRepository;
         this.mailService = mailService;
+        this.notificationRepository = notificationRepository;
     }
 
     @Override
@@ -120,16 +137,12 @@ public class TripServiceImpl implements TripService {
                 () -> new IllegalArgumentException("You have no permission to delete this trip")
         );
 
-        List<User> tripUsers = existedTrip.getUsers();
         try {
-            for (User u: tripUsers) {
-                existedTrip.removeUser(u);
-            }
+            tripRepository.delete(existedTrip);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        tripRepository.delete(existedTrip);
     }
 
     @Override
@@ -213,7 +226,7 @@ public class TripServiceImpl implements TripService {
                 () -> new IllegalArgumentException("User with username or email \"" + username + "\" doesn't exist")
         );
 
-        if (existedTrip.getOwner().equals(invitedUser.getUsername())) {
+        if (invitedUser.getUsername().equals(existedTrip.getOwner())) {
             throw new IllegalArgumentException(username + " is this trip's owner");
         }
 
@@ -224,6 +237,15 @@ public class TripServiceImpl implements TripService {
         MailContent invitationMail = new InviteJoinTripContent(existedTrip, invitedUser, frontendUrl);
         mailService.sendEmail(invitationMail);
         existedTrip.addUser(invitedUser);
+
+        //create notification
+        Notification notification = new Notification();
+        notification.setTrip(existedTrip);
+        notification.setCreatedAt(new Date());
+        notification.setUser(invitedUser);
+        notification.setType(NotificationType.INVITATION);
+        notificationRepository.save(notification);
+
         tripRepository.save(existedTrip);
 
     }
@@ -265,6 +287,16 @@ public class TripServiceImpl implements TripService {
 
         existedTrip.removeUser(invitedUser);
         tripRepository.save(existedTrip);
+    }
+
+    @Override
+    public List<Trip> search(String keyword) {
+        List<Trip> trips = new ArrayList<>();
+        if(keyword == null || "".equals(keyword)) {
+            return  trips;
+        }
+
+        return tripRepository.search("%" + keyword.toLowerCase()+ "%");
     }
 
     private boolean hasUser(Trip trip, User user) {

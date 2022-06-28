@@ -23,5 +23,9 @@ public interface TripService {
     public void inviteToJoinTrip(Long tripId, String username);
 
     public void removeTripMate(Long tripId, String username);
+<<<<<<< HEAD
 
+=======
+    public List<Trip> search(String keyword);
+>>>>>>> c36c2bffd79d8b8a7ceea5a3d1096ad5cbd289fc
 }

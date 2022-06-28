@@ -22,7 +22,7 @@ public class ExceptionHandler {
     public ResponseEntity<ErrorResponse> handDateConvertException(Exception ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Invalid date format, correct format is yyyy-MM-dd",
+                "Invalid date format, correct format is YYYY-MM-DD",
                 new Date(),
                 ((ServletWebRequest) request).getRequest().getRequestURI().toString()
         );
@@ -32,6 +32,17 @@ public class ExceptionHandler {
     @org.springframework.web.bind.annotation.ExceptionHandler(TripNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleTripNotFoundException(Exception ex, WebRequest request) {
+        return new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                new Date(),
+                ((ServletWebRequest) request).getRequest().getRequestURI().toString()
+        );
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(NotificationNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotificationNotFound(Exception ex, WebRequest request) {
         return new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
