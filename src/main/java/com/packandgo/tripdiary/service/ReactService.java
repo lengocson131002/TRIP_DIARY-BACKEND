@@ -7,11 +7,11 @@ import com.packandgo.tripdiary.payload.response.CommentResponse;
 import java.util.List;
 
 public interface ReactService {
-    public void commentTrip(Long tripId, String content);
+    public void commentTrip(Long commentId, CommentRequest request);
     public List<Comment> getCommentsByTripId(Long tripId);
     public void likeTrip(Long tripId);
     public void deleteComment(Long commentId);
-    public void editComment(Long tripId, CommentRequest request);
-    public void replyComment(Long tripId, CommentRequest request);
+    public void editComment(Long commentId, CommentRequest request);
+    public void replyComment(Long commentId, CommentRequest request);
     public List<CommentResponse> mappingComment(List<Comment> commentList);
 }

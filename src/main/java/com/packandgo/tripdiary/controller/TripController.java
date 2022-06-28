@@ -91,19 +91,19 @@ public class TripController {
     @PostMapping("/{tripId}/comments")
     public ResponseEntity<?> addComment(@PathVariable(name = "tripId", required = true) Long tripId,
                                          @RequestBody CommentRequest request){
-        reactService.commentTrip(tripId, request.getContent());
+        reactService.commentTrip(tripId, request);
         return ResponseEntity.ok(new MessageResponse("Comment successfully"));
     }
 
     @PostMapping("/comments/{commentId}/reply")
-    public ResponseEntity<?> replyComment(@PathVariable(name = "id", required = true) Long tripId,
+    public ResponseEntity<?> replyComment(@PathVariable(name = "commentId", required = true) Long commentId,
                                           @RequestBody CommentRequest request){
-        reactService.replyComment(tripId, request);
+        reactService.replyComment(commentId, request);
         return ResponseEntity.ok(new MessageResponse("Reply successfully"));
     }
 
-    @GetMapping("/{id}/comments")
-    public ResponseEntity<?> getComments(@PathVariable(name = "id", required = true) Long tripId){
+    @GetMapping("/{tripId}/comments")
+    public ResponseEntity<?> getComments(@PathVariable(name = "tripId", required = true) Long tripId){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         List<Comment> commentList = reactService.getCommentsByTripId(tripId);
         List<CommentResponse> listResponses = commentList.stream().map(comment -> {
@@ -125,15 +125,15 @@ public class TripController {
 
 
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<?> deleteComment(@PathVariable(name = "id") Long commentId){
+    public ResponseEntity<?> deleteComment(@PathVariable(name = "commentId") Long commentId){
         reactService.deleteComment(commentId);
         return ResponseEntity.ok(new MessageResponse("Comment was deleted successfully"));
     }
 
     @PutMapping("/comments/{commentId}")
-    public ResponseEntity<?> editComment(@PathVariable(name = "commentId") Long tripId,
+    public ResponseEntity<?> editComment(@PathVariable(name = "commentId") Long commentId,
                                          @RequestBody CommentRequest request){
-        reactService.editComment(tripId, request);
+        reactService.editComment(commentId, request);
         return ResponseEntity.ok(new MessageResponse("Comment was edit successfully"));
     }
 }

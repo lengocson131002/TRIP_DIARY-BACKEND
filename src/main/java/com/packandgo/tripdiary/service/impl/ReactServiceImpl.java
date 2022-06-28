@@ -61,7 +61,7 @@ public class ReactServiceImpl implements ReactService {
         }
     }
     @Override
-    public void commentTrip(Long tripId, String content){
+    public void commentTrip(Long tripId, CommentRequest request){
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
@@ -74,12 +74,12 @@ public class ReactServiceImpl implements ReactService {
         );
         Date date = new Date();
         Comment comment = new Comment();
-        if(content.trim().isEmpty())
+        if(request.getContent().trim().isEmpty())
         {
             throw new IllegalArgumentException("Comment can't be blank");
         }
 
-        comment.setContent(content);
+        comment.setContent(request.getContent());
         comment.setUser(user);
         comment.setTrip(trip);
         comment.setTime(date);
@@ -116,7 +116,7 @@ public class ReactServiceImpl implements ReactService {
         }
     }
     @Override
-    public void editComment(Long tripId, CommentRequest request) {
+    public void editComment(Long commentId, CommentRequest request) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
@@ -126,8 +126,8 @@ public class ReactServiceImpl implements ReactService {
         if (request.getContent().trim().isEmpty()) {
             throw new IllegalArgumentException("Comment can't be blank");
         }
-        Comment existedComment = commentRepository.findCommentByCommentIdAndTripId(request.getId(), tripId).orElseThrow(
-                () -> new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist or comment is not in Trip \"" +tripId)
+        Comment existedComment = commentRepository.findCommentById(commentId).orElseThrow(
+                () -> new IllegalArgumentException("Comment with ID \"" + commentId + "\" ")
         );
         if (existedComment.getUser().getId() == user.getId()) {
             existedComment.setContent(request.getContent());
@@ -137,15 +137,18 @@ public class ReactServiceImpl implements ReactService {
         }
     }
     @Override
-    public void replyComment(Long tripId, CommentRequest request){
+    public void replyComment(Long commentId, CommentRequest request){
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getPrincipal();
 
         User user = userRepository.findByUsername(userDetails.getUsername()).get();
-        Trip trip = tripRepository.findById(tripId).orElseThrow(
-                () ->  new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
+        Comment rootComment = commentRepository.findCommentById(commentId).orElseThrow(
+                () ->  new IllegalArgumentException("Comment with ID \"" + commentId + "\" doesn't exist")
+        );
+        Trip trip = tripRepository.findById(rootComment.getTrip().getId()).orElseThrow(
+                () ->  new IllegalArgumentException("Trip with ID \"" + rootComment.getTrip().getId() + "\" doesn't exist")
         );
         Date date = new Date();
         Comment comment = new Comment();
@@ -153,9 +156,6 @@ public class ReactServiceImpl implements ReactService {
         {
             throw new IllegalArgumentException("Comment can't be blank");
         }
-        Comment rootComment = commentRepository.findCommentByCommentIdAndTripId(request.getId(), tripId).orElseThrow(
-                () ->  new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
-        );
         comment.setContent(request.getContent());
         comment.setUser(user);
         comment.setTrip(trip);
