@@ -11,7 +11,7 @@ public interface ReactService {
     public List<Comment> getCommentsByTripId(Long tripId);
     public void likeTrip(Long tripId);
     public void deleteComment(Long commentId);
-    public void editComment(CommentRequest request);
+    public void editComment(Long tripId, CommentRequest request);
     public void replyComment(Long tripId, CommentRequest request);
     public List<CommentResponse> mappingComment(List<Comment> commentList);
 }

@@ -127,9 +127,10 @@ public class TripController {
         reactService.deleteComment(commentId);
         return ResponseEntity.ok(new MessageResponse("Comment was deleted successfully"));
     }
-    @PutMapping("/comment")
-    public ResponseEntity<?> editComment(@RequestBody CommentRequest request){
-        reactService.editComment(request);
+    @PutMapping("/comment/{id}")
+    public ResponseEntity<?> editComment(@PathVariable(name = "id") Long tripId,
+                                         @RequestBody CommentRequest request){
+        reactService.editComment(tripId, request);
         return ResponseEntity.ok(new MessageResponse("Comment was edit successfully"));
     }
 }

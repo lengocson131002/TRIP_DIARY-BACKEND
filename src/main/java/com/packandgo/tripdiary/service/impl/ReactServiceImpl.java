@@ -116,7 +116,7 @@ public class ReactServiceImpl implements ReactService {
         }
     }
     @Override
-    public void editComment(CommentRequest request) {
+    public void editComment(Long tripId, CommentRequest request) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
@@ -126,8 +126,8 @@ public class ReactServiceImpl implements ReactService {
         if (request.getContent().trim().isEmpty()) {
             throw new IllegalArgumentException("Comment can't be blank");
         }
-        Comment existedComment = commentRepository.findCommentById(request.getId()).orElseThrow(
-                () -> new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
+        Comment existedComment = commentRepository.findCommentByCommentIdAndTripId(request.getId(), tripId).orElseThrow(
+                () -> new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist or comment is not in Trip \"" +tripId)
         );
         if (existedComment.getUser().getId() == user.getId()) {
             existedComment.setContent(request.getContent());
