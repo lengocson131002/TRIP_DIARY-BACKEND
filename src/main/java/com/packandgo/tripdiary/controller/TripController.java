@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/trips")
 public class TripController {
     private final TripService tripService;
+
     private final UserService userService;
 
     @Autowired
@@ -35,6 +36,7 @@ public class TripController {
     public ResponseEntity<?> getTrip(@PathVariable(name = "id", required = true) Long tripId) {
         Trip trip = tripService.get(tripId);
         TripResponse tripResponse = trip.toResponse();
+
         return ResponseEntity.ok(tripResponse);
     }
 
