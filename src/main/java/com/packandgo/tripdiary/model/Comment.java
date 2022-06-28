@@ -2,6 +2,7 @@ package com.packandgo.tripdiary.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.packandgo.tripdiary.payload.response.CommentResponse;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -37,7 +38,7 @@ public class Comment {
     @JsonIgnore
     private Trip trip;
 
-    @OneToMany(mappedBy = "trip",
+    @OneToMany(mappedBy = "rComment",
             fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
