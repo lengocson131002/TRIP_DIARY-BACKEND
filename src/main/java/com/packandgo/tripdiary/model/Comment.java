@@ -42,19 +42,19 @@ public class Comment {
             fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
-    private List<Comment> extraComment;
+    private List<Comment> extraComments;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "comment_root_id",referencedColumnName = "id")
     @JsonIgnore
     private Comment rComment;
-    public void addExComment(Comment exComment) {
-        if (this.extraComment == null) {
-            extraComment = new ArrayList<>();
+    public void addExComments(Comment exComments) {
+        if (this.extraComments == null) {
+            extraComments = new ArrayList<>();
         }
-        this.extraComment.add(exComment);
-        exComment.setComment(this);
+        this.extraComments.add(exComments);
+        exComments.setComment(this);
     }
 
     public Comment getComment() {
@@ -66,11 +66,11 @@ public class Comment {
     }
 
     public List<Comment> getExtraComment() {
-        return extraComment;
+        return extraComments;
     }
 
     public void setExtraComment(List<Comment> extraComment) {
-        this.extraComment = extraComment;
+        this.extraComments = extraComment;
     }
 
     public Long getId() {

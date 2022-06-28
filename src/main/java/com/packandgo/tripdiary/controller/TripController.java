@@ -43,6 +43,7 @@ public class TripController {
     public ResponseEntity<?> getTrip(@PathVariable(name = "id", required = true) Long tripId) {
         Trip trip = tripService.get(tripId);
         TripResponse tripResponse = trip.toResponse();
+        tripResponse.setNumOfLikes(reactService.countLikes(tripId));
         return ResponseEntity.ok(tripResponse);
     }
 
@@ -116,7 +117,7 @@ public class TripController {
             UserInfo info = userService.getInfo(comment.getUser());
             rComment.setAvatar(info.getProfileImageUrl());
             List<CommentResponse> exComments = reactService.mappingComment(comment.getExtraComment());
-            rComment.setExtraComment(exComments);
+            rComment.setExtraComments(exComments);
 //            rComment.setRoot_id(comment.getComment() != null ? comment.getComment().getId() : 0);
             return  rComment;
         }).collect(Collectors.toList());

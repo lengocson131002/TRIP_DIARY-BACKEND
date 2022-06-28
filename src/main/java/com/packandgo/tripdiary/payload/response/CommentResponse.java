@@ -10,7 +10,7 @@ public class CommentResponse<T> {
     private Long id;
     private String content;
     private String time;
-    private List<CommentResponse> extraComment = new ArrayList<>();
+    private List<CommentResponse> extraComments = new ArrayList<>();
     private String username;
     private String avatar;
 
@@ -58,10 +58,10 @@ public class CommentResponse<T> {
     }
 
     public List<CommentResponse> getExtraComment() {
-        return extraComment;
+        return extraComments;
     }
 
-    public void setExtraComment(List<CommentResponse> extraComment) {
-        this.extraComment = extraComment;
+    public void setExtraComments(List<CommentResponse> extraComments) {
+        this.extraComments = extraComments;
     }
 }

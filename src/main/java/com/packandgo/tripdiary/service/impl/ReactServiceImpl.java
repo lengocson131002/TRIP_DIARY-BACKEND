@@ -162,7 +162,7 @@ public class ReactServiceImpl implements ReactService {
         comment.setTime(date);
 //        comment.setComment(rootComment);
         commentRepository.save(comment);
-        rootComment.addExComment(comment);
+        rootComment.addExComments(comment);
         commentRepository.save(rootComment);
     }
     @Override
@@ -179,10 +179,14 @@ public class ReactServiceImpl implements ReactService {
                     () ->  new IllegalArgumentException("UserInfo is in error")
             );;
             rComment.setAvatar(info.getProfileImageUrl());
-            rComment.setExtraComment(comment.getExtraComment());
+            rComment.setExtraComments(comment.getExtraComment());
 //            rComment.setRoot_id(comment.getComment() != null ? comment.getComment().getId() : 0);
             return  rComment;
         }).collect(Collectors.toList());
         return listResponses;
+    }
+    @Override
+    public int countLikes(Long tripId){
+        return likeRepository.countNumOfLike(tripId);
     }
 }

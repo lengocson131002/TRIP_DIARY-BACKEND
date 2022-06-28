@@ -14,4 +14,5 @@ public interface ReactService {
     public void editComment(Long commentId, CommentRequest request);
     public void replyComment(Long commentId, CommentRequest request);
     public List<CommentResponse> mappingComment(List<Comment> commentList);
+    public int countLikes(Long tripId);
 }
