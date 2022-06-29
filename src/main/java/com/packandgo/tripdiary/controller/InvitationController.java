@@ -37,4 +37,5 @@ public class InvitationController {
         tripService.removeTripMate(tripId, username);
         return ResponseEntity.ok(new MessageResponse("Trip mate was removed from this trip successfully"));
     }
+
 }

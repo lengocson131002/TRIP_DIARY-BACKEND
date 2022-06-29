@@ -1,6 +1,8 @@
 package com.packandgo.tripdiary.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ public class VisitDay {
 
     @ManyToOne
     @JoinColumn(name = "trip_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private Trip trip;
 

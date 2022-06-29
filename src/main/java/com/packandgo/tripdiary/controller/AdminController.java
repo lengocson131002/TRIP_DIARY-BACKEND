@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/api/")
+@RequestMapping("/api/admin")
 public class AdminController {
 
     private final UserService userService;
@@ -17,7 +17,7 @@ public class AdminController {
         this.userService = userService;
     }
 
-    @DeleteMapping("/user/remove/{username}")
+    @DeleteMapping("/users/{username}")
     public ResponseEntity<?> removeUser(@PathVariable("username") String username) {
         userService.removeUser(username);
         return ResponseEntity.ok(new MessageResponse("User removed successfully"));

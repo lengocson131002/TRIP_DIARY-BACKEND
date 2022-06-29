@@ -73,13 +73,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/api/trips", "/api/trips/{id}").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/trips/**").permitAll()
                 .antMatchers( "/api/users/**").permitAll()
-<<<<<<< HEAD
                 .antMatchers( "/api/search/**").permitAll()
-=======
-                .antMatchers("/api/trips/{id}/comments").permitAll()
->>>>>>> c3d5fa40c0d2f132a4d50e83794279ad9fa505a3
+                .antMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();

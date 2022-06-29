@@ -164,12 +164,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void removeUser(String username) {
-        boolean isExist = userRepository.existsByUsername(username);
-        if (!isExist) {
-            throw new UsernameNotFoundException("User with username \"" + username + "\" doesn't exist");
-        }
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new UsernameNotFoundException("User with username \"" + username + "\" doesn't exist")
+        );
 
-        userRepository.removeUserByUsername(username);
+        userRepository.delete(user);
     }
 
     @Override
@@ -254,7 +253,7 @@ public class UserServiceImpl implements UserService {
     public List<Trip> getTripsForUser(User user, String me) {
         List<Trip> allTrips = userRepository.findsTripByUserId(user.getId());
         List<Trip> trips = new ArrayList<>();
-        if(me != null && (("me".equals(me) || "ME".equals(me)))) {
+        if (me != null && (("me".equals(me) || "ME".equals(me)))) {
             trips = allTrips;
         } else {
             trips = allTrips.stream().filter(t -> t.getStatus().equals(TripStatus.PUBLIC)).collect(Collectors.toList());
@@ -296,10 +295,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserResponse> search(String keyword) {
         List<UserResponse> users = new ArrayList<>();
-        if(keyword == null || "".equals(keyword)) {
+        if (keyword == null || "".equals(keyword)) {
             return users;
         }
-        List<User> searchResult = userRepository.search("%" + keyword.toLowerCase()+ "%");
+        List<User> searchResult = userRepository.search("%" + keyword.toLowerCase() + "%");
         users = searchResult
                 .stream()
                 .map(u -> {

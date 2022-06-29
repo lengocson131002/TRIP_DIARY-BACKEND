@@ -2,6 +2,7 @@ package com.packandgo.tripdiary.controller;
 
 import com.packandgo.tripdiary.auth.oauth2.GoogleOAuth2UserInfo;
 import com.packandgo.tripdiary.auth.oauth2.OAuth2UserInfo;
+import com.packandgo.tripdiary.enums.Gender;
 import com.packandgo.tripdiary.enums.UserStatus;
 import com.packandgo.tripdiary.model.Role;
 import com.packandgo.tripdiary.model.User;
@@ -68,8 +69,11 @@ public class JwtCreateController {
             user.setRoles(roles);
 
             UserInfo info = new UserInfo();
+            info.setFirstName(userInfo.getFirstName());
+            info.setLastName(userInfo.getLastName());
             info.setProfileImageUrl(userInfo.getProfileImageUrl());
             info.setUser(user);
+            info.setGender(Gender.UNDEFINED);
 
             userInfoRepository.save(info);
 

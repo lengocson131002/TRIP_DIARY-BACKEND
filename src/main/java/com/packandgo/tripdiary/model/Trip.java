@@ -176,8 +176,6 @@ public class Trip {
         } else {
             this.setConcurrencyUnit(request.getConcurrencyUnit());
         }
-
-
     }
 
     public TripResponse toResponse() {

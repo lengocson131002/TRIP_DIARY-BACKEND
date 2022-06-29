@@ -49,7 +49,6 @@ public class UserDetailsImpl implements UserDetails {
                 user.getPassword(),
                 authorities
         );
-
     }
 
     public Long getId() {
