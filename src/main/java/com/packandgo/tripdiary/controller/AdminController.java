@@ -17,7 +17,8 @@ public class AdminController {
         this.userService = userService;
     }
 
-    @DeleteMapping("/users/remove/{username}")
+
+    @DeleteMapping("/users/{username}")
     public ResponseEntity<?> removeUser(@PathVariable("username") String username) {
         userService.removeUser(username);
         return ResponseEntity.ok(new MessageResponse("User removed successfully"));

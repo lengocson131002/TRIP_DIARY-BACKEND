@@ -2,6 +2,7 @@ package com.packandgo.tripdiary.repository;
 
 import com.packandgo.tripdiary.model.Trip;
 import com.packandgo.tripdiary.model.User;
+import com.packandgo.tripdiary.payload.response.UserResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,13 +25,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.verifyToken = ?1")
     public User findByVerifyToken(String verifyToken);
 
-    @Modifying
-    @Query("DELETE FROM User u where u.username = ?1")
-    public void removeUserByUsername(String username);
-
     @Query("SELECT user.trips FROM  User user WHERE user.id = ?1")
     List<Trip> findsTripByUserId(long id) ;
-    @Query(value = "SELECT DISTINCT user FROM User user LEFT OUTER JOIN user.trips")
+    @Query(value = "SELECT DISTINCT user FROM User user LEFT OUTER JOIN user.trips t")
     Page<User> findUsersAndAllTrips(Pageable pageable);
 
+    @Query("SELECT DISTINCT u " +
+            "FROM User u " +
+            "LEFT OUTER JOIN u.trips " +
+            "WHERE lower(u.username) like ?1")
+    List<User> search(String keyword);
 }

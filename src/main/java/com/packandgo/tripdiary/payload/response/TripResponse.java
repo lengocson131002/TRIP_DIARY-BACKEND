@@ -7,18 +7,13 @@ import java.util.List;
 
 public class TripResponse extends TripPayload {
     private long id;
-
     private String owner;
-
     private List<String> tripMates;
-
     public TripResponse() {
         super();
         tripMates = new ArrayList<>();
     }
-
     private int numOfLikes;
-//    private int List<Comment> comment;
 
     public long getId() {
         return id;

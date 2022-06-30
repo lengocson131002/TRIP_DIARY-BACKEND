@@ -1,18 +1,16 @@
 package com.packandgo.tripdiary.service.impl;
 
+import com.packandgo.tripdiary.enums.NotificationType;
 
-import com.packandgo.tripdiary.model.Comment;
-import com.packandgo.tripdiary.model.Like;
+import com.packandgo.tripdiary.model.Notification;
 import com.packandgo.tripdiary.model.Trip;
 import com.packandgo.tripdiary.model.User;
-import com.packandgo.tripdiary.payload.request.trip.CommentRequest;
 import com.packandgo.tripdiary.payload.request.trip.TripRequest;
 import com.packandgo.tripdiary.repository.*;
 
 import com.packandgo.tripdiary.model.mail.InviteJoinTripContent;
 import com.packandgo.tripdiary.model.mail.MailContent;
 import com.packandgo.tripdiary.repository.DestinationRepository;
-import com.packandgo.tripdiary.repository.LikeRepository;
 import com.packandgo.tripdiary.repository.TripRepository;
 import com.packandgo.tripdiary.repository.UserRepository;
 import com.packandgo.tripdiary.service.EmailSenderService;
@@ -28,6 +26,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 
 import java.util.Date;
 import java.util.List;
@@ -39,6 +38,8 @@ public class TripServiceImpl implements TripService {
     private final UserRepository userRepository;
     private final DestinationRepository destinationRepository;
     private final EmailSenderService mailService;
+    private final NotificationRepository notificationRepository;
+
 
     @Value("${tripdiary.baseurl.frontend}")
     private String frontendUrl;
@@ -47,11 +48,13 @@ public class TripServiceImpl implements TripService {
     public TripServiceImpl(TripRepository tripRepository,
                            UserRepository userRepository,
                            DestinationRepository destinationRepository,
-                           EmailSenderService mailService) {
+                           EmailSenderService mailService,
+                           NotificationRepository notificationRepository) {
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
         this.destinationRepository = destinationRepository;
         this.mailService = mailService;
+        this.notificationRepository = notificationRepository;
     }
 
     @Override
@@ -120,16 +123,12 @@ public class TripServiceImpl implements TripService {
                 () -> new IllegalArgumentException("You have no permission to delete this trip")
         );
 
-        List<User> tripUsers = existedTrip.getUsers();
         try {
-            for (User u: tripUsers) {
-                existedTrip.removeUser(u);
-            }
+            tripRepository.delete(existedTrip);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        tripRepository.delete(existedTrip);
     }
 
     @Override
@@ -213,7 +212,7 @@ public class TripServiceImpl implements TripService {
                 () -> new IllegalArgumentException("User with username or email \"" + username + "\" doesn't exist")
         );
 
-        if (existedTrip.getOwner().equals(invitedUser.getUsername())) {
+        if (invitedUser.getUsername().equals(existedTrip.getOwner())) {
             throw new IllegalArgumentException(username + " is this trip's owner");
         }
 
@@ -224,6 +223,15 @@ public class TripServiceImpl implements TripService {
         MailContent invitationMail = new InviteJoinTripContent(existedTrip, invitedUser, frontendUrl);
         mailService.sendEmail(invitationMail);
         existedTrip.addUser(invitedUser);
+
+        //create notification
+        Notification notification = new Notification();
+        notification.setTrip(existedTrip);
+        notification.setCreatedAt(new Date());
+        notification.setUser(invitedUser);
+        notification.setType(NotificationType.INVITATION);
+        notificationRepository.save(notification);
+
         tripRepository.save(existedTrip);
 
     }
@@ -267,6 +275,16 @@ public class TripServiceImpl implements TripService {
         tripRepository.save(existedTrip);
     }
 
+    @Override
+    public List<Trip> search(String keyword) {
+        List<Trip> trips = new ArrayList<>();
+        if(keyword == null || "".equals(keyword)) {
+            return  trips;
+        }
+
+        return tripRepository.search("%" + keyword.toLowerCase()+ "%");
+    }
+
     private boolean hasUser(Trip trip, User user) {
         for (User u : trip.getUsers()) {
             if (u.getUsername().equals(user.getUsername())) {
@@ -275,74 +293,4 @@ public class TripServiceImpl implements TripService {
         }
         return false;
     }
-//
-//<<<<<<< HEAD
-//        UserDetails userDetails = (UserDetails) SecurityContextHolder
-//                .getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//
-//        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-//
-//        Comment existedComment = commentRepository.findCommentById(commentId).orElseThrow(
-//                () -> new IllegalArgumentException("Comment with ID \"" + commentId + "\" doesn't exist")
-//        );
-//        if(existedComment.getUser().getId() == user.getId()) {
-//            commentRepository.delete(existedComment);
-//        }else{
-//            throw new IllegalArgumentException("You have no permission to delete this comment");
-//        }
-//    }
-//    @Override
-//    public void editComment(CommentRequest request) {
-//        UserDetails userDetails = (UserDetails) SecurityContextHolder
-//                .getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//
-//        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-//        if (request.getContent().trim().isEmpty()) {
-//            throw new IllegalArgumentException("Comment can't be blank");
-//        }
-//        Comment existedComment = commentRepository.findCommentById(request.getId()).orElseThrow(
-//                () -> new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
-//        );
-//        if (existedComment.getUser().getId() == user.getId()) {
-//            existedComment.setContent(request.getContent());
-//            commentRepository.save(existedComment);
-//        } else {
-//            throw new IllegalArgumentException("You have no permission to edit this comment");
-//        }
-//    }
-//    @Override
-//    public void replyComment(Long tripId, CommentRequest request){
-//        UserDetails userDetails = (UserDetails) SecurityContextHolder
-//                .getContext()
-//                .getAuthentication()
-//                .getPrincipal();
-//
-//        User user = userRepository.findByUsername(userDetails.getUsername()).get();
-//        Trip trip = tripRepository.findById(tripId).orElseThrow(
-//                () ->  new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
-//        );
-//        Date date = new Date();
-//        Comment comment = new Comment();
-//        if(request.getContent().trim().isEmpty())
-//        {
-//            throw new IllegalArgumentException("Comment can't be blank");
-//        }
-//        Comment rootComment = commentRepository.findCommentByCommentIdAndTripId(request.getId(), tripId).orElseThrow(
-//                () ->  new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
-//        );
-//        comment.setContent(request.getContent());
-//        comment.setUser(user);
-//        comment.setTrip(trip);
-//        comment.setTime(date);
-//        comment.setComment(rootComment);
-//        commentRepository.save(comment);
-//        rootComment.addExComment(comment);
-//    }
-//
-//=======
-//>>>>>>> d3330ffcccaa46cfb8ae19d9b189f17dc91f0c0c
 }

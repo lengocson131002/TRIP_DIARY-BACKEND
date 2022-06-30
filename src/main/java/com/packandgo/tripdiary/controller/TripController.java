@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/trips")
 public class TripController {
     private final TripService tripService;
+
     private final UserService userService;
     private final ReactService reactService;
 
@@ -43,6 +45,7 @@ public class TripController {
     public ResponseEntity<?> getTrip(@PathVariable(name = "id", required = true) Long tripId) {
         Trip trip = tripService.get(tripId);
         TripResponse tripResponse = trip.toResponse();
+
         tripResponse.setNumOfLikes(reactService.countLikes(tripId));
         return ResponseEntity.ok(tripResponse);
     }
@@ -54,7 +57,12 @@ public class TripController {
 
         page = page <= 0 ? 1 : page;
         Page<Trip> trips = tripService.getTrips(page, size);
-        PagingResponse<Trip> response = new PagingResponse<>(page, size, trips.getTotalPages(), trips.getContent());
+        List<TripResponse> tripResponses = trips
+                .stream()
+                .map(t -> t.toResponse())
+                .collect(Collectors.toList());
+
+        PagingResponse<TripResponse> response = new PagingResponse<>(page, size, trips.getTotalPages(), tripResponses);
         return ResponseEntity.ok(response);
     }
 

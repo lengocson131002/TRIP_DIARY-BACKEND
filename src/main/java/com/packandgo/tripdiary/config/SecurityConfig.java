@@ -35,7 +35,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/**/*swagger*/**",
             "/admin/api/**",
 
-
     };
 
     private final UserDetailsServiceImpl userDetailsService;
@@ -74,9 +73,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/api/trips", "/api/trips/{id}").permitAll()
-//                .antMatchers( "/api/admin/users/**").permitAll()
-                .antMatchers("/api/trips/{id}/comments").permitAll()
+
+                .antMatchers(HttpMethod.GET, "/api/trips/**").permitAll()
+                .antMatchers( "/api/users/**").permitAll()
+                .antMatchers( "/api/search/**").permitAll()
+                .antMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();

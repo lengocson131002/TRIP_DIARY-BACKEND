@@ -40,12 +40,12 @@ public class Trip {
     private Destination destination;
 
     @Column(name = "begin_date")
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd",shape = JsonFormat.Shape.STRING)
     @Temporal(TemporalType.DATE)
     private Date beginDate;
 
     @Column(name = "end_date")
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd",shape = JsonFormat.Shape.STRING)
     @Temporal(TemporalType.DATE)
     private Date endDate;
 
@@ -67,28 +67,32 @@ public class Trip {
     @Column(name = "notify_before")
     private int notifyBefore;
 
-    @ManyToMany(
-            mappedBy = "trips",
-            cascade =
-                    {
-                            CascadeType.DETACH,
-                            CascadeType.MERGE,
-                            CascadeType.REFRESH,
-                            CascadeType.PERSIST
-                    })
+    @ManyToMany(cascade = {}, fetch = FetchType.LAZY)
+    @JoinTable(
+            name="user_trip",
+            joinColumns = @JoinColumn(name = "trip_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
     @JsonIgnore
     private List<User> users;
 
     @OneToMany(mappedBy = "trip",
             fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
+            cascade = {
+                    CascadeType.MERGE,
+                    CascadeType.REMOVE,
+                    CascadeType.DETACH,
+                    CascadeType.REFRESH,
+                    CascadeType.PERSIST
+            },
             orphanRemoval = true
     )
     private List<VisitDay> visitDays;
 
     private String owner;
 
-    public String concurrencyUnit;
+    private String concurrencyUnit;
+    private String description;
 
     @OneToMany(mappedBy = "trip",
             fetch = FetchType.LAZY,
@@ -154,7 +158,7 @@ public class Trip {
             }
         }
 
-        TripStatus status = request.getStatus().toLowerCase().equals("private") ?
+        TripStatus status = "private".equals(request.getStatus().toLowerCase()) ?
                 TripStatus.PRIVATE : TripStatus.PUBLIC;
 
         this.setStatus(status);
@@ -164,6 +168,7 @@ public class Trip {
         this.setPriceList(request.getPriceList());
         this.setPreparedList(request.getPreparedList());
         this.setNote(request.getNote());
+        this.setDescription(request.getDescription());
 
         if (request.getConcurrencyUnit() == null ||
                 request.getConcurrencyUnit().trim().length() == 0) {
@@ -171,8 +176,6 @@ public class Trip {
         } else {
             this.setConcurrencyUnit(request.getConcurrencyUnit());
         }
-
-
     }
 
     public TripResponse toResponse() {
@@ -193,6 +196,7 @@ public class Trip {
         tripResponse.setNotifyBefore(this.getNotifyBefore());
         tripResponse.setNumOfLikes(0);
         tripResponse.setOwner(this.owner);
+        tripResponse.setDescription(this.description);
         this.users.forEach(user -> {
             if (!user.getUsername().equals(owner))
                 tripResponse.getTripMates().add(user.getUsername());
@@ -214,6 +218,14 @@ public class Trip {
         }
         this.priceList.add(item);
         item.setTrip(this);
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public List<User> getUsers() {
@@ -363,7 +375,7 @@ public class Trip {
             this.users = new ArrayList<>();
         }
         this.users.add(user);
-        user.getTrips().add(this);
+//        user.getTrips().add(this);
     }
 
     public void removeUser(User user) {

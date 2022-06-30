@@ -12,12 +12,18 @@ import java.util.List;
 
 @Repository
 public interface TripRepository extends PagingAndSortingRepository<Trip, Long> {
+
+    @Query("FROM Trip t WHERE t.status = 'PUBLIC' or t.status = 'public'")
     Page<Trip> findAll(Pageable pageable);
 
-    @Query("SELECT t FROM Trip t WHERE t.owner.id = ?1")
-    List<Trip> findByUserId(Long id);
     @Query(value = "SELECT * FROM trip t WHERE t.begin_date = current_date() + t.notify_before", nativeQuery = true)
     List<Trip> getTripsForToday();
 
     boolean existsById(Long tripId);
+
+    @Query("FROM Trip t " +
+            "WHERE (lower(t.destination.address) like ?1 or lower(t.owner) like ?1 or lower(t.name) like ?1) " +
+            "and (t.status = 'PUBLIC' or t.status = 'public')"
+    )
+    List<Trip> search(String keyword);
 }

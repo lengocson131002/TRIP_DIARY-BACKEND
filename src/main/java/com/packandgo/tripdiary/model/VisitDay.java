@@ -1,6 +1,8 @@
 package com.packandgo.tripdiary.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -24,12 +26,15 @@ public class VisitDay {
 
     @ManyToOne
     @JoinColumn(name = "trip_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private Trip trip;
 
     @OneToMany(mappedBy = "visitDay",
             fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
+            cascade = {
+                CascadeType.ALL
+            },
             orphanRemoval = true
     )
     private List<VisitPlace> visitPlaces = new ArrayList<>();
@@ -43,7 +48,7 @@ public class VisitDay {
     }
 
     public void addVisitPlace(VisitPlace place) {
-        if(this.visitPlaces == null) {
+        if (this.visitPlaces == null) {
             this.visitPlaces = new ArrayList<>();
         }
         this.visitPlaces.add(place);
@@ -88,7 +93,7 @@ public class VisitDay {
 
     public void setVisitPlaces(List<VisitPlace> visitPlaces) {
         visitPlaces.forEach(place -> place.setVisitDay(this));
-        if(this.visitPlaces == null) {
+        if (this.visitPlaces == null) {
             visitPlaces = new ArrayList<>();
         }
         this.visitPlaces = visitPlaces;
