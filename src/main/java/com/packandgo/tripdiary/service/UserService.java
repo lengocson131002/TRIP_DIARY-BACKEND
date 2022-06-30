@@ -29,4 +29,6 @@ public interface UserService {
     public void updateUserInfo(User user, InfoUpdateRequest infoUpdateRequest);
     public List<Trip> getTripsForUser(User user);
     public Page<UserResponse> getUsersAndAllTrips(int page, int size);
+    public void blockUsers(String username);
+    public  void unblockUsers(String username);
 }

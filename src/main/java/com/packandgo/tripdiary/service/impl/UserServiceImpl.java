@@ -278,4 +278,20 @@ public class UserServiceImpl implements UserService {
         return userInfoRepository.findByUserId(user.getId()).orElseGet(() -> null);
     }
 
+    @Override
+    @Transactional
+    public void blockUsers(String username){
+        User existedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        existedUser.setStatus(UserStatus.INACTIVE);
+        userRepository.save(existedUser);
+    }
+    @Override
+    @Transactional
+    public void unblockUsers(String username){
+        User existedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        existedUser.setStatus(UserStatus.ACTIVE);
+        userRepository.save(existedUser);
+    }
 }

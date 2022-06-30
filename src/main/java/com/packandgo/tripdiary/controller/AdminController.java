@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/api/")
+@RequestMapping("/api/admin")
 public class AdminController {
 
     private final UserService userService;
@@ -17,10 +17,21 @@ public class AdminController {
         this.userService = userService;
     }
 
-    @DeleteMapping("/user/remove/{username}")
+    @DeleteMapping("/users/remove/{username}")
     public ResponseEntity<?> removeUser(@PathVariable("username") String username) {
         userService.removeUser(username);
         return ResponseEntity.ok(new MessageResponse("User removed successfully"));
     }
 
+    @PutMapping("users/block/{username}")
+    public ResponseEntity<?> blockUser(@PathVariable("username") String username) {
+        userService.blockUsers(username);
+        return ResponseEntity.ok(new MessageResponse("User block successfully"));
+    }
+
+    @PutMapping("users/unblock/{username}")
+    public ResponseEntity<?> unblockUser(@PathVariable("username") String username) {
+        userService.unblockUsers(username);
+        return ResponseEntity.ok(new MessageResponse("User unblock successfully"));
+    }
 }
