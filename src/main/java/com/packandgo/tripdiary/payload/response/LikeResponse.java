@@ -2,7 +2,7 @@ package com.packandgo.tripdiary.payload.response;
 
 public class LikeResponse {
     private Long tripId;
-    private Long userId;
+    private String username;
 
     public LikeResponse(){}
     public Long getTripId() {
@@ -13,11 +13,11 @@ public class LikeResponse {
         this.tripId = tripId;
     }
 
-    public Long getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

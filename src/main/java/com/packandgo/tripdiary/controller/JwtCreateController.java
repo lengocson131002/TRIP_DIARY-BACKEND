@@ -8,6 +8,7 @@ import com.packandgo.tripdiary.model.Role;
 import com.packandgo.tripdiary.model.User;
 import com.packandgo.tripdiary.model.UserInfo;
 import com.packandgo.tripdiary.payload.response.JwtResponse;
+import com.packandgo.tripdiary.payload.response.MessageResponse;
 import com.packandgo.tripdiary.repository.RoleRepository;
 import com.packandgo.tripdiary.repository.UserInfoRepository;
 import com.packandgo.tripdiary.repository.UserRepository;
@@ -77,6 +78,8 @@ public class JwtCreateController {
 
             userInfoRepository.save(info);
 
+        } else if (user.isBlocked()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Account has been blocked!!!"));
         } else if (!user.isEnabled()) {
             user.setStatus(UserStatus.ACTIVE);
         }

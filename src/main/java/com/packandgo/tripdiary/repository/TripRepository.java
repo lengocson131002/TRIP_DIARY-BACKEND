@@ -16,6 +16,9 @@ public interface TripRepository extends PagingAndSortingRepository<Trip, Long> {
     @Query("FROM Trip t WHERE t.status = 'PUBLIC' or t.status = 'public'")
     Page<Trip> findAll(Pageable pageable);
 
+    @Query("FROM Trip t")
+    Page<Trip> findAllAdmin(Pageable pageable);
+
     @Query(value = "SELECT * FROM trip t WHERE t.begin_date = current_date() + t.notify_before", nativeQuery = true)
     List<Trip> getTripsForToday();
 

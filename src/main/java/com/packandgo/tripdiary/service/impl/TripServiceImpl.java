@@ -110,6 +110,14 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
+    public Page<Trip> getTripsAdmin(int page, int size) {
+        Pageable paging = PageRequest.of(page - 1, size);
+        Page<Trip> trips = tripRepository.findAllAdmin(paging);
+
+        return trips;
+    }
+
+    @Override
     @Transactional
     public Trip removeTrip(Long id) {
         if (id == null) {

@@ -38,7 +38,9 @@ public class User {
     private List<Trip> trips = new ArrayList<>();
 
     @ManyToMany(
-            fetch = FetchType.EAGER
+            fetch = FetchType.EAGER,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE
+            }
     )
     @JoinTable(
             name = "user_role", joinColumns = @JoinColumn(name = "user_id"),
@@ -153,5 +155,6 @@ public class User {
     public boolean isEnabled() {
         return this.status == UserStatus.ACTIVE;
     }
+    public boolean isBlocked() {return this.status == UserStatus.BLOCKED;}
 
 }

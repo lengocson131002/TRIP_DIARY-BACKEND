@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin/users")
-public class UserAdminController {
+public class AdminUserController {
 
     private final UserService userService;
 
     @Autowired
-    public UserAdminController(UserService userService) {
+    public AdminUserController(UserService userService) {
         this.userService = userService;
     }
 
@@ -52,14 +52,14 @@ public class UserAdminController {
         PagingResponse<UserResponse> response = new PagingResponse<>(page, size, result.getTotalPages(), result.getContent());
         return ResponseEntity.ok(response);
     }
-    @PostMapping("/grant/{username}")
+    @PutMapping("/grant/{username}")
     public ResponseEntity<?> grantAdmin(@PathVariable("username") String username){
         userService.grantAdmin(username);
-        return ResponseEntity.ok(new MessageResponse("grant successfully"));
+        return ResponseEntity.ok(new MessageResponse("Grant admin role successfully"));
     }
-    @PostMapping("/revoke/{username}")
+    @PutMapping("/revoke/{username}")
     public ResponseEntity<?> revokeAdmin(@PathVariable("username") String username){
         userService.revokeAdmin(username);
-        return ResponseEntity.ok(new MessageResponse("revoke successfully"));
+        return ResponseEntity.ok(new MessageResponse("Revoke admin role successfully"));
     }
 }
