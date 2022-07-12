@@ -30,9 +30,10 @@ public interface UserService {
     public void updateUserInfo(User user, InfoUpdateRequest infoUpdateRequest);
     public List<Trip> getTripsForUser(User user, String me);
     public Page<UserResponse> getUsersAndAllTrips(int page, int size);
-    public void blockUsers(String username);
-    public  void unblockUsers(String username);
+    public User blockUsers(String username);
+    public User unblockUsers(String username);
     public List<UserResponse> search(String keyword);
     public AdminResponse getUserInfo(String username);
-
+    public void grantAdmin(String username);
+    public void revokeAdmin(String username);
 }

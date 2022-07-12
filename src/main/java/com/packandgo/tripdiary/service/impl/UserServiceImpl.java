@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -340,19 +342,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void blockUsers(String username){
+    public User blockUsers(String username){
         User existedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-        existedUser.setStatus(UserStatus.INACTIVE);
+        existedUser.setStatus(UserStatus.BLOCKED);
         userRepository.save(existedUser);
+        return existedUser;
     }
     @Override
     @Transactional
-    public void unblockUsers(String username){
+    public User unblockUsers(String username){
         User existedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         existedUser.setStatus(UserStatus.ACTIVE);
         userRepository.save(existedUser);
+        return existedUser;
     }
 
     @Override
@@ -383,7 +387,38 @@ public class UserServiceImpl implements UserService {
         response.setGender(info.getGender());
         response.setBirthday(info.getDateOfBirth());
         return response;
+    }
+    @Override
+    public void grantAdmin(String username){
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new UserNotFoundException("User with username \"" + username + "\" doesn't exist"));
+        Role role = roleRepository.findByName("ADMIN").orElseGet(() -> new Role("ADMIN"));
+
+        user.getRoles().add(role);
+        userRepository.save(user);
+    }
+    @Override
+    public void revokeAdmin(String username) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(
+                () -> new UsernameNotFoundException("Unauthorized user")
+        );
+        if (currentUser.getUsername().equals(username)) {
+            throw new IllegalArgumentException("You can not remove ADMIN role from yourself");
+        }
+
+        User user = userRepository.findByUsername(username).orElseThrow(
+                    () -> new UserNotFoundException("User with username \"" + username + "\" doesn't exist"));
+
+        Role role = roleRepository.findByName("USER").orElseGet(() -> new Role("USER"));
+        Set<Role> roles = new HashSet<>();
+        roles.add(role);
+        user.setRoles(roles);
+        userRepository.save(user);
 
     }
-
 }
