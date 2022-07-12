@@ -14,6 +14,8 @@ import java.util.Optional;
 public interface LikeRepository extends JpaRepository<Like, Long> {
     Boolean existsByTripIdAndUserId(Long tripId, Long userId);
     Like findByTripIdAndUserId(Long tripId, Long userId);
+    @Query("SELECT l FROM Like l WHERE l.trip.id = ?1")
+    List<Like> findTripsByTripId(Long tripId);
     @Query("SELECT COUNT(l.id) FROM Like l")
 
     int countNumOfLike(Long tripId);

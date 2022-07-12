@@ -23,7 +23,7 @@ public class Comment {
     private String content;
 
     @Column(name = "date", columnDefinition = "DATETIME")
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss", shape = JsonFormat.Shape.STRING)
     private Date time;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -52,6 +52,7 @@ public class TripServiceImpl implements TripService {
     public TripServiceImpl(TripRepository tripRepository,
                            UserRepository userRepository,
                            DestinationRepository destinationRepository,
+                           LikeRepository likeRepository,
                            EmailSenderService mailService,
                            NotificationRepository notificationRepository) {
         this.tripRepository = tripRepository;

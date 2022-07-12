@@ -10,6 +10,7 @@ import com.packandgo.tripdiary.model.mail.VerifyEmailMailContent;
 import com.packandgo.tripdiary.payload.request.auth.NewPasswordRequest;
 import com.packandgo.tripdiary.payload.request.auth.RegisterRequest;
 import com.packandgo.tripdiary.payload.request.user.InfoUpdateRequest;
+import com.packandgo.tripdiary.payload.response.AdminResponse;
 import com.packandgo.tripdiary.payload.response.TripResponse;
 import com.packandgo.tripdiary.payload.response.UserResponse;
 import com.packandgo.tripdiary.repository.PasswordResetRepository;
@@ -23,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -337,4 +340,85 @@ public class UserServiceImpl implements UserService {
         return userInfoRepository.findByUserId(user.getId()).orElseGet(() -> null);
     }
 
+    @Override
+    @Transactional
+    public User blockUsers(String username){
+        User existedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        existedUser.setStatus(UserStatus.BLOCKED);
+        userRepository.save(existedUser);
+        return existedUser;
+    }
+    @Override
+    @Transactional
+    public User unblockUsers(String username){
+        User existedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        existedUser.setStatus(UserStatus.ACTIVE);
+        userRepository.save(existedUser);
+        return existedUser;
+    }
+
+    @Override
+    public AdminResponse getUserInfo(String username) {
+        User admin = userRepository.findByUsername(username).orElseThrow(
+                () -> new UserNotFoundException("User with username \"" + username + "\" doesn't exist"));
+        UserInfo info = userInfoRepository.findByUserId(admin.getId()).orElseThrow(
+                () -> new UserNotFoundException("Info with userId \"" + admin.getId() + "\" doesn't exist"));;
+        //only get public trips
+        AdminResponse response = new AdminResponse();
+        List<Trip> trips = admin.getTrips()
+                .stream()
+                .filter(t -> TripStatus.PUBLIC.equals(t.getStatus()))
+                .collect(Collectors.toList());
+        List<TripResponse> tripResponses = trips
+                .stream()
+                .map(trip -> trip.toResponse())
+                .collect(Collectors.toList());
+        response.setUsername(admin.getUsername());
+        response.setAboutMe(info.getAboutMe());
+        response.setCountry(info.getCountry());
+        response.setCoverImageUrl(info.getCoverImageUrl());
+        response.setProfileImageUrl(info.getProfileImageUrl());
+        response.setTrips(tripResponses);
+        response.setEmail(admin.getEmail());
+        response.setStatus(admin.getStatus());
+        response.setPhonenumber(info.getPhoneNumber());
+        response.setGender(info.getGender());
+        response.setBirthday(info.getDateOfBirth());
+        return response;
+    }
+    @Override
+    public void grantAdmin(String username){
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new UserNotFoundException("User with username \"" + username + "\" doesn't exist"));
+        Role role = roleRepository.findByName("ADMIN").orElseGet(() -> new Role("ADMIN"));
+
+        user.getRoles().add(role);
+        userRepository.save(user);
+    }
+    @Override
+    public void revokeAdmin(String username) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(
+                () -> new UsernameNotFoundException("Unauthorized user")
+        );
+        if (currentUser.getUsername().equals(username)) {
+            throw new IllegalArgumentException("You can not remove ADMIN role from yourself");
+        }
+
+        User user = userRepository.findByUsername(username).orElseThrow(
+                    () -> new UserNotFoundException("User with username \"" + username + "\" doesn't exist"));
+
+        Role role = roleRepository.findByName("USER").orElseGet(() -> new Role("USER"));
+        Set<Role> roles = new HashSet<>();
+        roles.add(role);
+        user.setRoles(roles);
+        userRepository.save(user);
+
+    }
 }
