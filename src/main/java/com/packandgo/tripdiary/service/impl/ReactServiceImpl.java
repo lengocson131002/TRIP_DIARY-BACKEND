@@ -3,6 +3,7 @@ package com.packandgo.tripdiary.service.impl;
 import com.packandgo.tripdiary.model.*;
 import com.packandgo.tripdiary.payload.request.trip.CommentRequest;
 import com.packandgo.tripdiary.payload.response.CommentResponse;
+import com.packandgo.tripdiary.payload.response.LikeResponse;
 import com.packandgo.tripdiary.repository.*;
 import com.packandgo.tripdiary.service.EmailSenderService;
 import com.packandgo.tripdiary.service.ReactService;
@@ -38,7 +39,8 @@ public class ReactServiceImpl implements ReactService {
         this.commentRepository = commentRepository;
         this.userInfoRepository = userInfoRepository;
     }
-    public void likeTrip(Long tripId) {
+    @Override
+    public Like likeTrip(Long tripId) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
@@ -55,10 +57,45 @@ public class ReactServiceImpl implements ReactService {
             like.setUser(user);
             like.setTrip(trip);
             likeRepository.save(like);
+            return like;
         } else {
+            throw new IllegalArgumentException("You already like this trip");
+        }
+    }
+    @Override
+    public Like unlikeTrip(Long tripId) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        User user = userRepository.findByUsername(userDetails.getUsername()).get();
+
+
+        Trip trip = tripRepository.findById(tripId).orElseThrow(
+                () -> new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
+        );
+        if (likeRepository.existsByTripIdAndUserId(trip.getId(), user.getId()) == true) {
             Like existedLike = likeRepository.findByTripIdAndUserId(trip.getId(), user.getId());
             likeRepository.delete(existedLike);
+            return existedLike;
+        } else {
+            throw new IllegalArgumentException("You already unlike this trip");
         }
+    }
+    @Override
+    public List<LikeResponse> getLikesByTripId(Long tripId){
+        Trip trip = tripRepository.findById(tripId).orElseThrow(
+                () -> new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
+        );
+        List<Like> likeList = likeRepository.findTripsByTripId(tripId);
+        List<LikeResponse> likeResponseList = likeList.stream().map(like -> {
+            LikeResponse response = new LikeResponse();
+                    response.setTripId(like.getTrip().getId());
+                    response.setUserId(like.getUser().getId());
+                    return response;
+        }).collect(Collectors.toList());
+        return likeResponseList;
     }
     @Override
     public void commentTrip(Long tripId, CommentRequest request){

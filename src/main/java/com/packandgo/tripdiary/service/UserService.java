@@ -6,6 +6,7 @@ import com.packandgo.tripdiary.model.UserInfo;
 import com.packandgo.tripdiary.payload.request.auth.NewPasswordRequest;
 import com.packandgo.tripdiary.payload.request.auth.RegisterRequest;
 import com.packandgo.tripdiary.payload.request.user.InfoUpdateRequest;
+import com.packandgo.tripdiary.payload.response.AdminResponse;
 import com.packandgo.tripdiary.payload.response.UserResponse;
 import org.springframework.data.domain.Page;
 
@@ -32,5 +33,6 @@ public interface UserService {
     public void blockUsers(String username);
     public  void unblockUsers(String username);
     public List<UserResponse> search(String keyword);
+    public AdminResponse getUserInfo(String username);
 
 }

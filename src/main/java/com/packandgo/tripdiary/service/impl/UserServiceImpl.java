@@ -10,6 +10,7 @@ import com.packandgo.tripdiary.model.mail.VerifyEmailMailContent;
 import com.packandgo.tripdiary.payload.request.auth.NewPasswordRequest;
 import com.packandgo.tripdiary.payload.request.auth.RegisterRequest;
 import com.packandgo.tripdiary.payload.request.user.InfoUpdateRequest;
+import com.packandgo.tripdiary.payload.response.AdminResponse;
 import com.packandgo.tripdiary.payload.response.TripResponse;
 import com.packandgo.tripdiary.payload.response.UserResponse;
 import com.packandgo.tripdiary.repository.PasswordResetRepository;
@@ -353,4 +354,36 @@ public class UserServiceImpl implements UserService {
         existedUser.setStatus(UserStatus.ACTIVE);
         userRepository.save(existedUser);
     }
+
+    @Override
+    public AdminResponse getUserInfo(String username) {
+        User admin = userRepository.findByUsername(username).orElseThrow(
+                () -> new UserNotFoundException("User with username \"" + username + "\" doesn't exist"));
+        UserInfo info = userInfoRepository.findByUserId(admin.getId()).orElseThrow(
+                () -> new UserNotFoundException("Info with userId \"" + admin.getId() + "\" doesn't exist"));;
+        //only get public trips
+        AdminResponse response = new AdminResponse();
+        List<Trip> trips = admin.getTrips()
+                .stream()
+                .filter(t -> TripStatus.PUBLIC.equals(t.getStatus()))
+                .collect(Collectors.toList());
+        List<TripResponse> tripResponses = trips
+                .stream()
+                .map(trip -> trip.toResponse())
+                .collect(Collectors.toList());
+        response.setUsername(admin.getUsername());
+        response.setAboutMe(info.getAboutMe());
+        response.setCountry(info.getCountry());
+        response.setCoverImageUrl(info.getCoverImageUrl());
+        response.setProfileImageUrl(info.getProfileImageUrl());
+        response.setTrips(tripResponses);
+        response.setEmail(admin.getEmail());
+        response.setStatus(admin.getStatus());
+        response.setPhonenumber(info.getPhoneNumber());
+        response.setGender(info.getGender());
+        response.setBirthday(info.getDateOfBirth());
+        return response;
+
+    }
+
 }

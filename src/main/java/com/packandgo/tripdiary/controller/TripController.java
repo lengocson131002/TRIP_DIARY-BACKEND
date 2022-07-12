@@ -2,15 +2,13 @@ package com.packandgo.tripdiary.controller;
 
 import com.packandgo.tripdiary.exception.TripNotFoundException;
 import com.packandgo.tripdiary.model.Comment;
+import com.packandgo.tripdiary.model.Like;
 import com.packandgo.tripdiary.model.Trip;
 
 import com.packandgo.tripdiary.model.UserInfo;
 import com.packandgo.tripdiary.payload.request.trip.CommentRequest;
 import com.packandgo.tripdiary.payload.request.trip.TripRequest;
-import com.packandgo.tripdiary.payload.response.CommentResponse;
-import com.packandgo.tripdiary.payload.response.MessageResponse;
-import com.packandgo.tripdiary.payload.response.PagingResponse;
-import com.packandgo.tripdiary.payload.response.TripResponse;
+import com.packandgo.tripdiary.payload.response.*;
 import com.packandgo.tripdiary.service.ReactService;
 import com.packandgo.tripdiary.service.TripService;
 import com.packandgo.tripdiary.service.UserService;
@@ -90,12 +88,29 @@ public class TripController {
 
     @PostMapping("/like/{tripId}")
 
-    public ResponseEntity<?> likeTrip(@PathVariable(name = "tripId", required = true) Long tripId) {
-        reactService.likeTrip(tripId);
-        return ResponseEntity.ok(new MessageResponse("OK"));
+    public ResponseEntity<?> likeTrip(@PathVariable(name = "tripId", required = true)String tripId) {
+        Long id = changeStringIntoLong(tripId);
+        Like like = reactService.likeTrip(id);
+        LikeResponse response = new LikeResponse();
+        response.setTripId(like.getTrip().getId());
+        response.setUserId(like.getUser().getId());
+        return ResponseEntity.ok(response);
     }
+    @DeleteMapping("/like/{tripId}")
 
-
+    public ResponseEntity<?> unlikeTrip(@PathVariable(name = "tripId", required = true) String tripId) {
+        Long id = changeStringIntoLong(tripId);
+        Like unlike = reactService.unlikeTrip(id);
+        LikeResponse response = new LikeResponse();
+        response.setTripId(unlike.getTrip().getId());
+        response.setUserId(unlike.getUser().getId());
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/like/{tripId}")
+    public ResponseEntity<?> getLikesByTrip(@PathVariable(name = "tripId") String tripId){
+        Long id = changeStringIntoLong(tripId);
+        return ResponseEntity.ok(reactService.getLikesByTripId(id));
+    }
 
     @PostMapping("/{tripId}/comments")
     public ResponseEntity<?> addComment(@PathVariable(name = "tripId", required = true) Long tripId,
@@ -144,5 +159,15 @@ public class TripController {
                                          @RequestBody CommentRequest request){
         reactService.editComment(commentId, request);
         return ResponseEntity.ok(new MessageResponse("Comment was edit successfully"));
+    }
+
+    private Long changeStringIntoLong(String id){
+        long tripId = 0;
+        try{
+            tripId = Long.parseLong(id);
+        }catch (Exception e){
+            throw new TripNotFoundException("Trip not found");
+        }
+        return tripId;
     }
 }
