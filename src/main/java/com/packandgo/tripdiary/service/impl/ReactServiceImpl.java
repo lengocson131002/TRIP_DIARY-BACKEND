@@ -3,6 +3,7 @@ package com.packandgo.tripdiary.service.impl;
 import com.packandgo.tripdiary.model.*;
 import com.packandgo.tripdiary.payload.request.trip.CommentRequest;
 import com.packandgo.tripdiary.payload.response.CommentResponse;
+import com.packandgo.tripdiary.payload.response.LikeResponse;
 import com.packandgo.tripdiary.repository.*;
 import com.packandgo.tripdiary.service.EmailSenderService;
 import com.packandgo.tripdiary.service.ReactService;
@@ -38,7 +39,8 @@ public class ReactServiceImpl implements ReactService {
         this.commentRepository = commentRepository;
         this.userInfoRepository = userInfoRepository;
     }
-    public void likeTrip(Long tripId) {
+    @Override
+    public Like likeTrip(Long tripId) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
@@ -55,13 +57,48 @@ public class ReactServiceImpl implements ReactService {
             like.setUser(user);
             like.setTrip(trip);
             likeRepository.save(like);
+            return like;
         } else {
-            Like existedLike = likeRepository.findByTripIdAndUserId(trip.getId(), user.getId());
-            likeRepository.delete(existedLike);
+            throw new IllegalArgumentException("You already like this trip");
         }
     }
     @Override
-    public void commentTrip(Long tripId, String content){
+    public Like unlikeTrip(Long tripId) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        User user = userRepository.findByUsername(userDetails.getUsername()).get();
+
+
+        Trip trip = tripRepository.findById(tripId).orElseThrow(
+                () -> new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
+        );
+        if (likeRepository.existsByTripIdAndUserId(trip.getId(), user.getId()) == true) {
+            Like existedLike = likeRepository.findByTripIdAndUserId(trip.getId(), user.getId());
+            likeRepository.delete(existedLike);
+            return existedLike;
+        } else {
+            throw new IllegalArgumentException("You already unlike this trip");
+        }
+    }
+    @Override
+    public List<LikeResponse> getLikesByTripId(Long tripId){
+        Trip trip = tripRepository.findById(tripId).orElseThrow(
+                () -> new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
+        );
+        List<Like> likeList = likeRepository.findTripsByTripId(tripId);
+        List<LikeResponse> likeResponseList = likeList.stream().map(like -> {
+            LikeResponse response = new LikeResponse();
+                    response.setTripId(like.getTrip().getId());
+                    response.setUserId(like.getUser().getId());
+                    return response;
+        }).collect(Collectors.toList());
+        return likeResponseList;
+    }
+    @Override
+    public void commentTrip(Long tripId, CommentRequest request){
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
@@ -74,12 +111,12 @@ public class ReactServiceImpl implements ReactService {
         );
         Date date = new Date();
         Comment comment = new Comment();
-        if(content.trim().isEmpty())
+        if(request.getContent().trim().isEmpty())
         {
             throw new IllegalArgumentException("Comment can't be blank");
         }
 
-        comment.setContent(content);
+        comment.setContent(request.getContent());
         comment.setUser(user);
         comment.setTrip(trip);
         comment.setTime(date);
@@ -116,7 +153,7 @@ public class ReactServiceImpl implements ReactService {
         }
     }
     @Override
-    public void editComment(Long tripId, CommentRequest request) {
+    public void editComment(Long commentId, CommentRequest request) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
@@ -126,8 +163,8 @@ public class ReactServiceImpl implements ReactService {
         if (request.getContent().trim().isEmpty()) {
             throw new IllegalArgumentException("Comment can't be blank");
         }
-        Comment existedComment = commentRepository.findCommentByCommentIdAndTripId(request.getId(), tripId).orElseThrow(
-                () -> new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist or comment is not in Trip \"" +tripId)
+        Comment existedComment = commentRepository.findCommentById(commentId).orElseThrow(
+                () -> new IllegalArgumentException("Comment with ID \"" + commentId + "\" ")
         );
         if (existedComment.getUser().getId() == user.getId()) {
             existedComment.setContent(request.getContent());
@@ -137,15 +174,18 @@ public class ReactServiceImpl implements ReactService {
         }
     }
     @Override
-    public void replyComment(Long tripId, CommentRequest request){
+    public void replyComment(Long commentId, CommentRequest request){
         UserDetails userDetails = (UserDetails) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getPrincipal();
 
         User user = userRepository.findByUsername(userDetails.getUsername()).get();
-        Trip trip = tripRepository.findById(tripId).orElseThrow(
-                () ->  new IllegalArgumentException("Trip with ID \"" + tripId + "\" doesn't exist")
+        Comment rootComment = commentRepository.findCommentById(commentId).orElseThrow(
+                () ->  new IllegalArgumentException("Comment with ID \"" + commentId + "\" doesn't exist")
+        );
+        Trip trip = tripRepository.findById(rootComment.getTrip().getId()).orElseThrow(
+                () ->  new IllegalArgumentException("Trip with ID \"" + rootComment.getTrip().getId() + "\" doesn't exist")
         );
         Date date = new Date();
         Comment comment = new Comment();
@@ -153,16 +193,13 @@ public class ReactServiceImpl implements ReactService {
         {
             throw new IllegalArgumentException("Comment can't be blank");
         }
-        Comment rootComment = commentRepository.findCommentByCommentIdAndTripId(request.getId(), tripId).orElseThrow(
-                () ->  new IllegalArgumentException("Comment with ID \"" + request.getId() + "\" doesn't exist")
-        );
         comment.setContent(request.getContent());
         comment.setUser(user);
         comment.setTrip(trip);
         comment.setTime(date);
 //        comment.setComment(rootComment);
         commentRepository.save(comment);
-        rootComment.addExComment(comment);
+        rootComment.addExComments(comment);
         commentRepository.save(rootComment);
     }
     @Override
@@ -179,10 +216,14 @@ public class ReactServiceImpl implements ReactService {
                     () ->  new IllegalArgumentException("UserInfo is in error")
             );;
             rComment.setAvatar(info.getProfileImageUrl());
-            rComment.setExtraComment(comment.getExtraComment());
+            rComment.setExtraComments(comment.getExtraComment());
 //            rComment.setRoot_id(comment.getComment() != null ? comment.getComment().getId() : 0);
             return  rComment;
         }).collect(Collectors.toList());
         return listResponses;
+    }
+    @Override
+    public int countLikes(Long tripId){
+        return likeRepository.countNumOfLike(tripId);
     }
 }

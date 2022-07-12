@@ -14,7 +14,6 @@ public class TripResponse extends TripPayload {
         tripMates = new ArrayList<>();
     }
     private int numOfLikes;
-//    private int List<Comment> comment;
 
     public long getId() {
         return id;
