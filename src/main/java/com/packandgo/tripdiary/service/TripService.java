@@ -12,6 +12,8 @@ import java.util.List;
 public interface TripService {
     public Trip insertTrip(TripRequest request);
     public Page<Trip> getTrips(int page, int size);
+
+    public Page<Trip> getTripsAdmin(int page, int size);
     public Trip removeTrip(Long id);
     public Trip updateTrip(Long tripId, TripRequest request);
     public Trip get(Long id);

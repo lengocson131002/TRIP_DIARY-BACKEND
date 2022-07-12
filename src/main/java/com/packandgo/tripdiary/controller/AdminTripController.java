@@ -36,10 +36,14 @@ public class AdminTripController {
             @RequestParam(defaultValue = "10", required = false) int size
     ) {
         page = page <= 0 ? 1 : page;
-        Page<Trip> trips = tripService.getTrips(page, size);
+        Page<Trip> trips = tripService.getTripsAdmin(page, size);
         List<TripResponse> tripResponses = trips
                 .stream()
-                .map(t -> t.toResponse())
+                .map(t ->{
+                    TripResponse response =  t.toResponse();
+                    response.setNumOfLikes(reactService.countLikes(t.getId()));
+                    return response;
+                })
                 .collect(Collectors.toList());
 
         PagingResponse<TripResponse> response = new PagingResponse<>(page, size, trips.getTotalPages(), tripResponses);

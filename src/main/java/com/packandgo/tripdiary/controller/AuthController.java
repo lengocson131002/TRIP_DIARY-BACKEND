@@ -76,19 +76,22 @@ public class AuthController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         User user = userService.findUserByUsername(userDetails.getUsername());
 
-        if (!user.isEnabled()) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Account hasn't been verified"));
+        if (user.isEnabled()) {
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtils.generateJwtToken(authentication);
+
+            JwtResponse body = new JwtResponse(
+                    jwt,
+                    userDetails.getUsername(),
+                    userDetails.getEmail());
+
+            return new ResponseEntity<>(body, HttpStatus.OK);
+        } else if (user.isBlocked()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Account has been blocked!!!"));
+        } else {
+            return ResponseEntity.badRequest().body(new MessageResponse("Account hasn't been verified!!!"));
         }
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
-
-        JwtResponse body = new JwtResponse(
-                jwt,
-                userDetails.getUsername(),
-                userDetails.getEmail());
-
-        return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
     @PostMapping("/signup")
@@ -145,7 +148,7 @@ public class AuthController {
         if (isValidToken) {
             return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(frontendUrl + "/login")).build();
         } else {
-            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(frontendUrl + "/invalid-verify-code")).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).location(URI.create(frontendUrl + "/invalid-verify-code")).build();
         }
     }
 }

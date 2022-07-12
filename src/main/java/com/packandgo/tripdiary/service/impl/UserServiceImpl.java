@@ -342,20 +342,36 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User blockUsers(String username){
+    public User blockUsers(String username) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        User currentUser = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(
+                () -> new UsernameNotFoundException("Unauthorized user")
+        );
+        if (currentUser.getUsername().equals(username)) {
+            throw new IllegalArgumentException("You can not block yourself");
+        }
+
         User existedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         existedUser.setStatus(UserStatus.BLOCKED);
         userRepository.save(existedUser);
         return existedUser;
     }
+
     @Override
     @Transactional
-    public User unblockUsers(String username){
+    public User unblockUsers(String username) {
         User existedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-        existedUser.setStatus(UserStatus.ACTIVE);
-        userRepository.save(existedUser);
+
+        if (existedUser.getStatus().equals(UserStatus.BLOCKED)) {
+            existedUser.setStatus(UserStatus.ACTIVE);
+            userRepository.save(existedUser);
+        }
         return existedUser;
     }
 
@@ -364,7 +380,8 @@ public class UserServiceImpl implements UserService {
         User admin = userRepository.findByUsername(username).orElseThrow(
                 () -> new UserNotFoundException("User with username \"" + username + "\" doesn't exist"));
         UserInfo info = userInfoRepository.findByUserId(admin.getId()).orElseThrow(
-                () -> new UserNotFoundException("Info with userId \"" + admin.getId() + "\" doesn't exist"));;
+                () -> new UserNotFoundException("Info with userId \"" + admin.getId() + "\" doesn't exist"));
+        ;
         //only get public trips
         AdminResponse response = new AdminResponse();
         List<Trip> trips = admin.getTrips()
@@ -383,13 +400,14 @@ public class UserServiceImpl implements UserService {
         response.setTrips(tripResponses);
         response.setEmail(admin.getEmail());
         response.setStatus(admin.getStatus());
-        response.setPhonenumber(info.getPhoneNumber());
+        response.setPhoneNumber(info.getPhoneNumber());
         response.setGender(info.getGender());
         response.setBirthday(info.getDateOfBirth());
         return response;
     }
+
     @Override
-    public void grantAdmin(String username){
+    public void grantAdmin(String username) {
         User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new UserNotFoundException("User with username \"" + username + "\" doesn't exist"));
         Role role = roleRepository.findByName("ADMIN").orElseGet(() -> new Role("ADMIN"));
@@ -397,6 +415,7 @@ public class UserServiceImpl implements UserService {
         user.getRoles().add(role);
         userRepository.save(user);
     }
+
     @Override
     public void revokeAdmin(String username) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder
@@ -412,7 +431,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = userRepository.findByUsername(username).orElseThrow(
-                    () -> new UserNotFoundException("User with username \"" + username + "\" doesn't exist"));
+                () -> new UserNotFoundException("User with username \"" + username + "\" doesn't exist"));
 
         Role role = roleRepository.findByName("USER").orElseGet(() -> new Role("USER"));
         Set<Role> roles = new HashSet<>();

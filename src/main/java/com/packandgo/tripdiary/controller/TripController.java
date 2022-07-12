@@ -56,7 +56,11 @@ public class TripController {
         Page<Trip> trips = tripService.getTrips(page, size);
         List<TripResponse> tripResponses = trips
                 .stream()
-                .map(t -> t.toResponse())
+                .map(t -> {
+                    TripResponse response =  t.toResponse();
+                    response.setNumOfLikes(reactService.countLikes(t.getId()));
+                    return response;
+                })
                 .collect(Collectors.toList());
 
         PagingResponse<TripResponse> response = new PagingResponse<>(page, size, trips.getTotalPages(), tripResponses);
@@ -86,23 +90,22 @@ public class TripController {
     }
 
     @PostMapping("/like/{tripId}")
-
     public ResponseEntity<?> likeTrip(@PathVariable(name = "tripId", required = true)String tripId) {
         Long id = changeStringIntoLong(tripId);
         Like like = reactService.likeTrip(id);
         LikeResponse response = new LikeResponse();
         response.setTripId(like.getTrip().getId());
-        response.setUserId(like.getUser().getId());
+        response.setUsername(like.getUser().getUsername());
         return ResponseEntity.ok(response);
     }
-    @DeleteMapping("/like/{tripId}")
 
+    @DeleteMapping("/like/{tripId}")
     public ResponseEntity<?> unlikeTrip(@PathVariable(name = "tripId", required = true) String tripId) {
         Long id = changeStringIntoLong(tripId);
         Like unlike = reactService.unlikeTrip(id);
         LikeResponse response = new LikeResponse();
         response.setTripId(unlike.getTrip().getId());
-        response.setUserId(unlike.getUser().getId());
+        response.setUsername(unlike.getUser().getUsername());
         return ResponseEntity.ok(response);
     }
     @GetMapping("/like/{tripId}")

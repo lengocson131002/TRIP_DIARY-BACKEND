@@ -92,7 +92,7 @@ public class ReactServiceImpl implements ReactService {
         List<LikeResponse> likeResponseList = likeList.stream().map(like -> {
             LikeResponse response = new LikeResponse();
                     response.setTripId(like.getTrip().getId());
-                    response.setUserId(like.getUser().getId());
+                    response.setUsername(like.getUser().getUsername());
                     return response;
         }).collect(Collectors.toList());
         return likeResponseList;
@@ -241,6 +241,6 @@ public class ReactServiceImpl implements ReactService {
     }
     @Override
     public int countLikes(Long tripId){
-        return likeRepository.countNumOfLike(tripId);
+        return likeRepository.findTripsByTripId(tripId).size();
     }
 }
