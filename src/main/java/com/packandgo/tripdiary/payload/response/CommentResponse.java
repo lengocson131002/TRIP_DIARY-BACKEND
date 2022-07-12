@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class CommentResponse<T> {
+public class CommentResponse {
     private Long id;
     private String content;
     private String time;

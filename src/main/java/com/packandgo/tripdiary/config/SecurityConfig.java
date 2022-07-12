@@ -33,7 +33,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/api/auth/**",
             "/oauth2/**",
             "/**/*swagger*/**",
-            "/admin/api/**",
 
     };
 
@@ -76,6 +75,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/api/trips/**").permitAll()
                 .antMatchers( "/api/users/**").permitAll()
                 .antMatchers( "/api/search/**").permitAll()
+                .antMatchers("/api/admin/signin").permitAll()
                 .antMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
                 .and()

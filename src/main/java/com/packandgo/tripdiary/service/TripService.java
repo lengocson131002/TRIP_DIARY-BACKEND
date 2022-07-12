@@ -12,7 +12,7 @@ import java.util.List;
 public interface TripService {
     public Trip insertTrip(TripRequest request);
     public Page<Trip> getTrips(int page, int size);
-    public void removeTrip(Long id);
+    public Trip removeTrip(Long id);
     public Trip updateTrip(Long tripId, TripRequest request);
     public Trip get(Long id);
 

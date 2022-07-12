@@ -38,8 +38,8 @@ public class User {
     private List<Trip> trips = new ArrayList<>();
 
     @ManyToMany(
-            fetch = FetchType.EAGER,
-            cascade = CascadeType.ALL)
+            fetch = FetchType.EAGER
+    )
     @JoinTable(
             name = "user_role", joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
@@ -153,4 +153,5 @@ public class User {
     public boolean isEnabled() {
         return this.status == UserStatus.ACTIVE;
     }
+
 }

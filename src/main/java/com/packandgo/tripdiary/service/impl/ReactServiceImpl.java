@@ -179,8 +179,25 @@ public class ReactServiceImpl implements ReactService {
                     () ->  new IllegalArgumentException("UserInfo is in error")
             );;
             rComment.setAvatar(info.getProfileImageUrl());
-            rComment.setExtraComments(comment.getExtraComment());
-//            rComment.setRoot_id(comment.getComment() != null ? comment.getComment().getId() : 0);
+
+            List<CommentResponse> extraCommentResponse = comment.getExtraComment()
+                    .stream()
+                            .map(cm -> {
+                                CommentResponse extraCommentRes = new CommentResponse();
+                                //mapping
+                                extraCommentRes.setId(cm.getId());
+                                extraCommentRes.setTime(sdf.format(cm.getTime()));
+                                extraCommentRes.setContent(cm.getContent());
+                                extraCommentRes.setUsername(cm.getUser().getUsername());
+                                UserInfo extraInfo = userInfoRepository.findByUserId(cm.getUser().getId()).orElseThrow(
+                                        () ->  new IllegalArgumentException("UserInfo is in error")
+                                );;
+                                extraCommentRes.setAvatar(extraInfo.getProfileImageUrl());
+                                return extraCommentRes;
+                            }).collect(Collectors.toList());
+
+            rComment.setExtraComments(extraCommentResponse);
+
             return  rComment;
         }).collect(Collectors.toList());
         return listResponses;

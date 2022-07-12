@@ -10,6 +10,8 @@ public class JwtResponse {
     private String token;
     private String username;
     private String email;
+
+    private String profileImage;
     private String tokeType = "Bearer";
 
     public JwtResponse(

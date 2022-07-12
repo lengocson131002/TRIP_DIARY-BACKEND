@@ -2,6 +2,7 @@ package com.packandgo.tripdiary.service.impl;
 
 import com.packandgo.tripdiary.enums.NotificationType;
 
+import com.packandgo.tripdiary.exception.TripNotFoundException;
 import com.packandgo.tripdiary.model.Notification;
 import com.packandgo.tripdiary.model.Trip;
 import com.packandgo.tripdiary.model.User;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -106,7 +108,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     @Transactional
-    public void removeTrip(Long id) {
+    public Trip removeTrip(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Removed trip's ID is required");
         }
@@ -117,18 +119,27 @@ public class TripServiceImpl implements TripService {
                 .getPrincipal();
 
         User user = userRepository.findByUsername(userDetails.getUsername()).get();
-        List<Trip> trips = userRepository.findsTripByUserId(user.getId());
 
-        Trip existedTrip = trips.stream().filter(trip -> trip.getId() == id).findAny().orElseThrow(
-                () -> new IllegalArgumentException("You have no permission to delete this trip")
-        );
+        Trip existedTrip = null;
+
+        if(user.getRoles().stream().filter(role -> "ADMIN".equals(role.getName())).collect(Collectors.toList()).size() > 0) {
+            existedTrip = tripRepository.findById(id).orElseThrow(() ->
+                    new TripNotFoundException("Trip not found")
+            );
+        } else {
+            List<Trip> trips = userRepository.findsTripByUserId(user.getId());
+
+            existedTrip = trips.stream().filter(trip -> trip.getId() == id).findAny().orElseThrow(
+                    () -> new IllegalArgumentException("You have no permission to delete this trip")
+            );
+        }
 
         try {
             tripRepository.delete(existedTrip);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
+        return existedTrip;
     }
 
     @Override
