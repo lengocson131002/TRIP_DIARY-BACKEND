@@ -3,6 +3,7 @@ package com.packandgo.tripdiary.service.impl;
 import com.packandgo.tripdiary.enums.NotificationType;
 
 import com.packandgo.tripdiary.exception.TripNotFoundException;
+
 import com.packandgo.tripdiary.model.Notification;
 import com.packandgo.tripdiary.model.Trip;
 import com.packandgo.tripdiary.model.User;
@@ -14,6 +15,7 @@ import com.packandgo.tripdiary.model.mail.MailContent;
 import com.packandgo.tripdiary.repository.DestinationRepository;
 import com.packandgo.tripdiary.repository.TripRepository;
 import com.packandgo.tripdiary.repository.UserRepository;
+
 import com.packandgo.tripdiary.service.EmailSenderService;
 
 import com.packandgo.tripdiary.service.TripService;
