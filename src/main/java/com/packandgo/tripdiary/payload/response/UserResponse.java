@@ -1,11 +1,15 @@
 package com.packandgo.tripdiary.payload.response;
 
+import com.packandgo.tripdiary.model.Role;
 import com.packandgo.tripdiary.model.Trip;
 
 import java.util.List;
+import java.util.Set;
 
 public class UserResponse {
     private String username;
+
+    private Set<Role> roles;
     private String avatar;
     private String aboutMe;
     private String country;
@@ -70,4 +74,13 @@ public class UserResponse {
     public void setAvatar(String avatar) {
         this.avatar = avatar;
     }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
 }

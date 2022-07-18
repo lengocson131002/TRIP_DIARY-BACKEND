@@ -285,6 +285,7 @@ public class UserServiceImpl implements UserService {
             UserResponse response = new UserResponse();
             UserInfo info = getInfo(user);
             response.setUsername(user.getUsername());
+            response.setRoles(user.getRoles());
             response.setAboutMe(info.getAboutMe());
             response.setCountry(info.getCountry());
             response.setCoverImageUrl(info.getCoverImageUrl());
@@ -403,6 +404,7 @@ public class UserServiceImpl implements UserService {
         response.setPhoneNumber(info.getPhoneNumber());
         response.setGender(info.getGender());
         response.setBirthday(info.getDateOfBirth());
+        response.setRoles(admin.getRoles());
         return response;
     }
 

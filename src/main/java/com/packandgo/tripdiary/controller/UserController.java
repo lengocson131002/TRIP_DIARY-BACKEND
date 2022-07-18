@@ -41,6 +41,7 @@ public class UserController {
         UserResponse userResponse = new UserResponse();
 
         userResponse.setUsername(username);
+        userResponse.setRoles(user.getRoles());
         userResponse.setAboutMe(userInfo.getAboutMe());
         userResponse.setCountry(userInfo.getCountry());
         userResponse.setProfileImageUrl(userInfo.getProfileImageUrl());
@@ -48,6 +49,7 @@ public class UserController {
         userResponse.setTrips(tripResponses);
 
         return ResponseEntity.ok(userResponse);
+
     }
 
     @GetMapping("/trips")
