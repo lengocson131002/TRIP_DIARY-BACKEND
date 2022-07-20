@@ -8,7 +8,6 @@ import java.util.Date;
 
 public class AdminResponse extends UserResponse{
     private String email;
-    private UserStatus status;
     private String phoneNumber;
     public Gender gender;
 
@@ -49,11 +48,5 @@ public class AdminResponse extends UserResponse{
         this.email = email;
     }
 
-    public UserStatus getStatus() {
-        return status;
-    }
 
-    public void setStatus(UserStatus status) {
-        this.status = status;
-    }
 }

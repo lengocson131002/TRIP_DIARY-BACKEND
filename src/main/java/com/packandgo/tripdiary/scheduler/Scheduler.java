@@ -49,6 +49,7 @@ public class Scheduler {
      * Check at every 00:01:00 every day
      */
     @Scheduled(cron = "0 1 0 * * *")
+//    @Scheduled(cron = "10 * * * * *")
     @Transactional
     public void sendNotificationEmailScheduler() {
         List<Trip> notifiedTrip = tripService.getNotifiedTripsForDay();
@@ -60,7 +61,6 @@ public class Scheduler {
                 for (User user : users) {
                     MailContent mailContent = new NotificationMailContent(trip, user, frontendUrl);
                     emailSenderService.sendEmail(mailContent);
-
                     //save notification;
                     Notification notification = new Notification();
                     notification.setType(NotificationType.COMING_TRIP);

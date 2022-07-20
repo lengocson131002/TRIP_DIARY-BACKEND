@@ -41,6 +41,7 @@ public class UserController {
         UserResponse userResponse = new UserResponse();
 
         userResponse.setUsername(username);
+        userResponse.setStatus(user.getStatus());
         userResponse.setRoles(user.getRoles());
         userResponse.setAboutMe(userInfo.getAboutMe());
         userResponse.setCountry(userInfo.getCountry());

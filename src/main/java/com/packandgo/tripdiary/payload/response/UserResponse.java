@@ -1,5 +1,6 @@
 package com.packandgo.tripdiary.payload.response;
 
+import com.packandgo.tripdiary.enums.UserStatus;
 import com.packandgo.tripdiary.model.Role;
 import com.packandgo.tripdiary.model.Trip;
 
@@ -16,6 +17,8 @@ public class UserResponse {
     private String profileImageUrl;
     private String coverImageUrl;
     private List<TripResponse> trips;
+
+    private UserStatus status;
 
     public UserResponse() {}
 
@@ -83,4 +86,11 @@ public class UserResponse {
         this.roles = roles;
     }
 
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
 }

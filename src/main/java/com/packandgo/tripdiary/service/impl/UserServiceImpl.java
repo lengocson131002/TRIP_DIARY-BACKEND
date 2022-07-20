@@ -286,6 +286,7 @@ public class UserServiceImpl implements UserService {
             UserInfo info = getInfo(user);
             response.setUsername(user.getUsername());
             response.setRoles(user.getRoles());
+            response.setStatus(user.getStatus());
             response.setAboutMe(info.getAboutMe());
             response.setCountry(info.getCountry());
             response.setCoverImageUrl(info.getCoverImageUrl());

@@ -89,9 +89,11 @@ public class TripServiceImpl implements TripService {
         if (request.getName() == null || request.getName().trim().length() == 0) {
             throw new IllegalArgumentException("Trip's name is required");
         }
-        if (request.getName() == null || request.getName().trim().length() == 0) {
-            throw new IllegalArgumentException("Trip's name is required");
+
+        if(request.getEndDate().before(request.getBeginDate())) {
+            throw new IllegalArgumentException("Trip's end date must not be before trip's start day");
         }
+
 
         Trip newTrip = new Trip();
         newTrip.mapping(request);
@@ -177,6 +179,10 @@ public class TripServiceImpl implements TripService {
         }
         if (request.getName() == null || request.getName().trim().length() == 0) {
             throw new IllegalArgumentException("Trip's name is required");
+        }
+
+        if(request.getEndDate().before(request.getBeginDate())) {
+            throw new IllegalArgumentException("Trip's end day must not be before trip's start day");
         }
 
         //remove the old destination in database
