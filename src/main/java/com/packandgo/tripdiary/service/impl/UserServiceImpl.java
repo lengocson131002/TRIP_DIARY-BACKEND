@@ -324,6 +324,8 @@ public class UserServiceImpl implements UserService {
                     userResponse.setCountry(info.getCountry());
                     userResponse.setProfileImageUrl(info.getProfileImageUrl());
                     userResponse.setCoverImageUrl(info.getCoverImageUrl());
+                    userResponse.setRoles(u.getRoles());
+                    userResponse.setStatus(u.getStatus());
                     userResponse.setTrips(
                             u.getTrips()
                                     .stream()
