@@ -1,37 +1,27 @@
-version: "3"
+version: "3.8"
 services:
-  mysql-service:
-    image: mysql
-    container_name: mysql_db
+  server:
+    build: .
     restart: always
     ports:
-      - "3307:3306"
+      - 8080:8080
+    depends_on:
+      - mysqldb
+    environment:
+      DB_URL: jdbc:mysql://mysqldb:3306/trip_diary?allowPublicKeyRetrieval=true&useSSL=false
+      DB_USER: user
+      DB_PASSWORD: password
+  mysqldb:
+    image: "mysql:5.7"
+    restart: always
+    ports:
+      - 3307:3306
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
     environment:
       MYSQL_DATABASE: trip_diary
       MYSQL_USER: user
       MYSQL_PASSWORD: password
-      MYSQL_ROOT_PASSWORD: root
-    volumes:
-      - db_data:/var/lib/mysql
-    networks:
-      - trip_diary
+      MYSQL_ROOT_PASSWORD: password
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    restart: always
-    environment:
-      DB_URL: jdbc:mysql://mysql_db:3306/trip_diary?allowPublicKeyRetrieval=true&useSSL=false
-      DB_USER: user
-      DB_PASSWORD: password
-    depends_on:
-      - mysql-service
-    networks:
-      - trip_diary
-volumes:
-  db_data:
-networks:
-  trip_diary:
+
