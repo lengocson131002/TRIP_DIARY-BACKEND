@@ -80,19 +80,19 @@ public class TripServiceImpl implements TripService {
         );
 
 
-        if (request.getNotifyBefore() < 1) {
-            throw new IllegalArgumentException("Trip should be announced at least 1 day earlier than its starting");
+        if (request.getName() == null || request.getName().trim().length() == 0) {
+            throw new IllegalArgumentException("Trip's name is required");
         }
         if (request.getDestination() == null) {
             throw new IllegalArgumentException("Trip's destination is required");
         }
-        if (request.getName() == null || request.getName().trim().length() == 0) {
-            throw new IllegalArgumentException("Trip's name is required");
-        }
-
-        if(request.getEndDate().before(request.getBeginDate())) {
+        if(request.getEndDate() != null && request.getEndDate().before(request.getBeginDate())) {
             throw new IllegalArgumentException("Trip's end date must not be before trip's start day");
         }
+        if (request.getNotifyBefore() < 1) {
+            throw new IllegalArgumentException("Trip should be announced at least 1 day earlier than its starting");
+        }
+
 
 
         Trip newTrip = new Trip();
@@ -171,18 +171,17 @@ public class TripServiceImpl implements TripService {
                 () -> new IllegalArgumentException("You have no permission to update this trip")
         );
 
-        if (request.getNotifyBefore() < 1) {
-            throw new IllegalArgumentException("Trip should be announced at least 1 day earlier than its starting");
+        if (request.getName() == null || request.getName().trim().length() == 0) {
+            throw new IllegalArgumentException("Trip's name is required");
+        }
+        if(request.getEndDate() != null && request.getEndDate().before(request.getBeginDate())) {
+            throw new IllegalArgumentException("Trip's end day must not be before trip's start day");
         }
         if (request.getDestination() == null) {
             throw new IllegalArgumentException("Trip's destination is required");
         }
-        if (request.getName() == null || request.getName().trim().length() == 0) {
-            throw new IllegalArgumentException("Trip's name is required");
-        }
-
-        if(request.getEndDate().before(request.getBeginDate())) {
-            throw new IllegalArgumentException("Trip's end day must not be before trip's start day");
+        if (request.getNotifyBefore() < 1) {
+            throw new IllegalArgumentException("Trip should be announced at least 1 day earlier than its starting");
         }
 
         //remove the old destination in database

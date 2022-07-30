@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.packandgo.tripdiary.model.Destination;
 import com.packandgo.tripdiary.model.PriceItem;
 import com.packandgo.tripdiary.model.VisitDay;
+import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
 import java.util.Date;
